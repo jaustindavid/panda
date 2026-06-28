@@ -228,9 +228,9 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
 
 - [ ] `gcloud` + `firebase` CLIs installed, logged into the **right**
   Google account (`firebase login`); Node ≥ 20.
-- [ ] panda repo open locally; create a gitignored
-  `dispatch/M1-g-outputs.md` to paste captured values into.
-- [ ] §4 decisions in hand: Project ID (`panda-bamboo-lane`), Firestore
+- [x] panda repo open locally; create a gitignored
+  `dispatch/M1-g-outputs.md` to paste captured values into. ✅
+- [x] §4 decisions in hand: Project ID (`panda-bamboo-lane`), Firestore
   region (`nam5`), the circle's Gmails, confirm the **shared** billing
   account. Project ID is decided: **`panda-bamboo-lane`**.
 
@@ -303,12 +303,15 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
   — config is hand-authored later. Continue to console; verify
   `<id>.web.app` + `<id>.firebaseapp.com` are listed. ✅ Done 2026-06-28
   — both domains listed.
-- [ ] **[Firebase]** gear → Project settings → General → Your apps → Web
+- [x] **[Firebase]** gear → Project settings → General → Your apps → Web
   (`</>`). Nickname `panda`; **do NOT** tick "also set up Firebase
   Hosting" (re-enters the CLI flow). Register, then copy the whole
-  `firebaseConfig` into `dispatch/M1-g-outputs.md`.
-- [ ] **[GCP]** Also copy the **OAuth Web Client ID** (OAuth Consent →
-  Clients) into the same file.
+  `firebaseConfig` into `dispatch/M1-g-outputs.md`. ✅ Done 2026-06-28
+  (config captured; `measurementId` correctly absent — Analytics off).
+- [x] **[GCP]** Also copy the **OAuth Web Client ID** (OAuth Consent →
+  Clients) into the same file. ✅ Done. ⚠️ When wiring the env (§7.5),
+  set `VITE_FIREBASE_AUTH_DOMAIN=<id>.web.app` — the captured config's
+  default `.firebaseapp.com` is the Chrome storage-partitioning rake.
 
 ### 7.4 · GCP — Maps API, restricted key, cost controls  (Δ2, Δ3)
 
