@@ -15,6 +15,9 @@ coverage/
 .env.development
 .env.production
 
+# Captured cloud config / secrets from M1 console setup (API keys, IDs)
+dispatch/*-outputs.md
+
 # Logs
 *.log
 npm-debug.log*
