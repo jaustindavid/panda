@@ -178,9 +178,11 @@ display details from Maps on demand.
   member = edit the rules + redeploy. Leanest for a tiny fixed circle
   (settled 2026-06-28, §11.2 Q4). A Firestore Membership _entity_ (read:
   members; write: owner) is deferred unless invite-link onboarding lands.
-- **Note** — `placeId`, `authorUid`, `text`, `createdAt`, `updatedAt`.
-  Multiple per place. Read: members. Write: author (create/update/delete
-  own).
+- **Note** — `placeId`, `authorUid`, `authorName`, `text`, `createdAt`,
+  `updatedAt`. (`authorName` is a denormalized display snapshot — the
+  circle's own data, not Maps content — so attribution needs no User-doc
+  lookup; M3.) Multiple per place. Read: members. Write: author
+  (create/update/delete own).
 - **Visit** — `placeId`, `byUid`, `at` (timestamp). Created by "here now."
   Read: members. Write: creator (create/delete own; edits rare).
 - **PlaceOverride (good-time-to-go)** — doc id = `placeId`;

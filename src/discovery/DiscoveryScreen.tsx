@@ -4,10 +4,12 @@ import { useGeolocation } from '../hooks/useGeolocation.ts'
 import { searchNearbyRestaurants } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
 import { availableGenres, rankDiscovery } from '../lib/discovery.ts'
+import type { DiscoveryPlace } from '../lib/discovery.ts'
 import { formatClock } from '../lib/time.ts'
 import { WhenChips } from './WhenChips.tsx'
 import { GenreFilter } from './GenreFilter.tsx'
 import { PlaceCard } from './PlaceCard.tsx'
+import { PlaceDetail } from '../place/PlaceDetail.tsx'
 
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
@@ -27,6 +29,7 @@ export function DiscoveryScreen() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [offset, setOffset] = useState(15) // default +15 (PRD §3)
   const [genre, setGenre] = useState<string | null>(null)
+  const [selected, setSelected] = useState<DiscoveryPlace | null>(null)
   // "now" as state (lazy-init, refreshed on a timer) — never Date.now() in
   // render. A minute's granularity is plenty for go-ability.
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -68,6 +71,10 @@ export function DiscoveryScreen() {
   const genres = useMemo(() => availableGenres(ranked), [ranked])
   const shown = genre ? ranked.filter((d) => d.genre === genre) : ranked
   const arrivalLabel = formatClock(nowMs + offset * 60_000)
+
+  if (selected != null) {
+    return <PlaceDetail item={selected} onBack={() => setSelected(null)} />
+  }
 
   if (!MAPS_KEY) {
     return <Centered>Missing Maps API key (VITE_GOOGLE_MAPS_API_KEY).</Centered>
@@ -111,7 +118,7 @@ export function DiscoveryScreen() {
         {!loading && !fetchError && shown.length > 0 && (
           <ul className="flex flex-col gap-2">
             {shown.map((item) => (
-              <PlaceCard key={item.place.id} item={item} />
+              <PlaceCard key={item.place.id} item={item} onSelect={setSelected} />
             ))}
           </ul>
         )}
