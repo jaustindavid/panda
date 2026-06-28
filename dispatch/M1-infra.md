@@ -340,9 +340,12 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
     blast radius. (`SearchMediaRequest` / `SearchReviewPostsRequest` show
     "Unlimited" — can't take a number; skip.)
   This is the hard ceiling — calls 429 at the cap rather than billing.
-- [ ] **[GCP]** Billing → Budgets & alerts → create a **project-scoped**
-  budget alert (email only; the quota — not the budget — is the real
-  stop).
+- [x] **[GCP]** Billing → Budgets & alerts. ✅ Satisfied 2026-06-28 by an
+  existing **account-wide $5 budget** (covers every project on the shared
+  billing account, panda included — has never fired). No separate
+  project-scoped budget created. Note: it's a *combined*-spend tripwire,
+  so the per-method **50/day quotas** above are panda's real per-project
+  stop.
 
 ### 7.5 · Code-side wiring (rides with the app — see §3, not pure ops)
 
