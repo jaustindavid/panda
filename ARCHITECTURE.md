@@ -116,6 +116,11 @@ firebase.json / .firebaserc   hosting + firestore + emulator config
 
 ## 8. Build, test, deploy
 
+- **Single environment — prod only** (deliberate). No dev/staging Firebase
+  project or env tiers; `npm run deploy` goes straight to
+  `panda-bamboo-lane`. Config is one gitignored `.env.local` (no
+  `.env.development` / `.env.production` split). Local work uses
+  `npm run dev` + the Firestore emulator.
 - `npm run dev` · `npm run build` · `npm run preview`
 - Gates: `npm run typecheck` · `npm run lint` · `npm run test:run` ·
   `npm run test:rules` (emulator) · `npx markdownlint-cli2 "**/*.md"`
