@@ -86,16 +86,33 @@ firebase.json / .firebaserc   hosting + firestore + emulator config
   self, delete: creator), `overrides` (read/write: any member). Everything
   else denied (NoGo is a later chamber). One+ emulator test per row.
 
-## 5. Place data & cost (M2+)
+## 5. Discovery & place data (M2 — landed)
 
-- One **Nearby Search per screen-load** (`maxResultCount: 20`, hours in
-  the field mask); **never** fan out to per-place Place Details for the
-  list. Chip re-filtering is **client-side** (no new billed call).
-- Place content is **not persisted** beyond the Place ID (Maps ToS); the
-  circle's own data (notes/visits/overrides) keys on Place ID.
-- Hard ceiling: per-method **daily quota cap** (`SearchNearbyRequest` +
-  `GetPlaceRequest` at 50/day) — calls 429 at the cap, not billed.
-- Key is HTTP-referrer + API restricted; lives in gitignored `.env.local`.
+The discovery flow (PRD §7 F1) is layered as pure logic + a thin UI:
+
+- **`lib/places.ts`** — one **Nearby Search per screen-load**
+  (`includedTypes:['restaurant']`, `rankPreference:DISTANCE`, ≤20,
+  Enterprise hours field mask; **no rating** → not the Atmosphere SKU).
+- **`lib/goable.ts`** — the pure go-able filter (PRD §3): `[arrival,
+  finish]` within one open interval, place-local time, precedence
+  override > KITCHEN > posted, wrap-safe, override clamp+flag. The
+  most-tested code in the repo.
+- **`lib/discovery.ts`** — `rankDiscovery`: exclude not-go-able, keep
+  go-able + hours-unknown, sort go-able-first then nearest;
+  `availableGenres` for the filter.
+- **`lib/{distance,genre,time}.ts`** — pure helpers (haversine, Maps-type
+  → label, chip clock).
+- **UI** (`discovery/`, `hooks/useGeolocation.ts`) — when-chips
+  (client-side re-filter), genre chips, list. "now" is timer-refreshed
+  state and loading is derived — never `Date.now()` in render, never
+  synchronous setState in an effect (react-hooks v7 strict rules).
+
+Cost (PRD §8): chip re-filtering is **client-side** (no new billed call);
+**never** fan out to per-place Place Details for the list; place content is
+**not persisted** beyond the Place ID (Maps ToS — caching scope is PRD
+§11.2 Q3, fact-finder pending). Hard ceiling: per-method daily quota cap
+(`SearchNearbyRequest` + `GetPlaceRequest` at 50/day). The key is
+referrer- and API-restricted (browser-origin only — not callable from Node).
 
 ## 6. PWA & offline
 
@@ -129,5 +146,7 @@ firebase.json / .firebaserc   hosting + firestore + emulator config
 
 ## 9. What's not here yet
 
-Discovery + the go-able filter (M2), place detail + notes (M3), here-now +
-visits + overrides (M4), roulette (M5). This doc grows as they land.
+Landed: M1 (infra/auth), M2 (discovery + go-able, §5). Still ahead: the
+discovery **map view** (deferred M2 fast-follow), place detail + notes
+(M3), here-now + visits + overrides (M4), roulette (M5). This doc grows as
+they land.

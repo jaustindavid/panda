@@ -19,25 +19,32 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 
 ## Next
 
-Active candidates for the immediate next dispatch.
+Active candidates for the immediate next dispatch (M2 done; pick one).
 
-- `[~]` **M2 — Discovery core + go-able** [L] — geolocation → one Nearby
-  Search → the go-able filter (chips Now/+15/+30/+60 default +15, m=75,
-  place-local time, precedence override > KITCHEN > posted, midnight
-  wrap, no period-merge, override clamp, hours-unknown shown) → list +
-  map, genre filter. The go-able filter is the project's most edge-dense
-  code → thorough unit tests. Fact-finder facts already gathered.
-  **Unblocked — M1 done.** _Design: PRD §3, §7 (F1), §8, §11.2 Q1–Q2._
+- `[~]` **M3 — Place detail + notes** [M] — place detail view; shared,
+  attributed notes (read / write / edit-own / delete-own). Next milestone
+  in sequence. _Design: PRD §5, §6, §7 (F4)._
+- `[ ]` **Discovery map view** [S] — the deferred M2 fast-follow: list ⇄
+  map toggle on the discovery home (PRD §7 F1, §9). Needs **Maps
+  JavaScript API** enabled on `panda-bamboo-lane` + added to the Maps key
+  restriction (owner console), and adds the dynamic-map billing SKU.
+  Reuses the same fetched result set (no extra Nearby Search). Pairs with
+  the "search this area" item. _Design: PRD §7 (F1), §9._
+- `[ ]` **App icon — boba panda** [S] — replace the 🐼 emoji (AppShell
+  header) and the placeholder SVG icons (`public/icon*.svg`, manifest,
+  apple-touch) with the owner's artwork: a cartoon panda holding boba +
+  eating fried chicken on a blue rounded square (supplied 2026-06-28).
+  Generate the PNG set (192/512 + maskable safe-zone + apple-touch 180),
+  wire into `vite.config.ts` manifest + `index.html`. ⚠️ Owner to add the
+  source PNG to the repo (suggest `public/icon-source.png`) at dispatch
+  time. Note: art is blue; decide whether to align `theme_color`.
 
 ---
 
 ## Soon
 
-The v1 feature build, smallest-friction-first after M2.
+The v1 feature build, smallest-friction-first.
 
-- `[~]` **M3 — Place detail + notes** [M] — place detail view; shared,
-  attributed notes (read / write / edit-own / delete-own). _Design: PRD
-  §5, §6, §7 (F4)._
 - `[~]` **M4 — Here-now + visits + overrides** [M] — one-tap "here now"
   → shared Visit; recent-visits view; the good-time-to-go override
   (`closeBufferMin`, F4b) feeding the go-able filter; notes/visit
@@ -114,6 +121,18 @@ fire.
 
 ## Done
 
+- `[x]` **M2 — Discovery core + go-able** [L] — 2026-06-28, owner-verified
+  on live data. Geolocation → one Nearby Search (Places API New,
+  restaurants nearest-first, Enterprise hours field mask, no Atmosphere
+  SKU) → the go-able filter (`src/lib/goable.ts`: place-local time,
+  override > KITCHEN > posted, wrap-safe, clamp+flag; 20 unit tests) →
+  ranked list (go-able + hours-unknown, nearest-first) with when-chips
+  (client-side re-filter) + genre filter. 42 unit tests; live API contract
+  validated; deployed. Map view deferred (now its own item). Decisions:
+  list-first, restaurants-nearest, m=75/default+15. Rakes: react-hooks v7
+  set-state-in-effect/purity (→ lazy init, async-only setState, derived
+  loading, timer-based now); referrer-key is browser-only. Detail:
+  dispatch/M2-discovery-handoff.md; ARCHITECTURE.md §5.
 - `[x]` **M1 — Infrastructure** [ops] — 2026-06-28. GCP/Firebase project
   `panda-bamboo-lane` on the owner's personal (route7-shared) billing
   account; Google Auth (External/Testing) + **hardcoded-in-rules

@@ -429,8 +429,8 @@ budget** is the email alert. The split-billing trigger is in §13.3.
     genre fires a fresh Nearby Search `includedTypes:[that type]`. Note:
     Places API (New) `searchNearby` has **no page token** (hard cap 20) —
     more results means a new call (bigger radius / recenter) or switching
-    that query to **Text Search** (paged, supports a type). Keep it explicit
-    + quota-aware (50/day). _Later chamber._
+    that query to **Text Search** (paged, supports a type). Keep it
+    explicit and quota-aware (50/day). _Later chamber._
 
 ---
 
