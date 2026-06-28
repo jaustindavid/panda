@@ -298,10 +298,11 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
   `nam5` → **production mode** (not test mode) → leave the deny-all
   default rules. ✅ Done 2026-06-28. (Order: the wizard asks **location
   before** mode.)
-- [ ] **[Firebase]** Hosting & Serverless → Hosting → Get started → click
+- [x] **[Firebase]** Hosting & Serverless → Hosting → Get started → click
   through. ⚠️ **Do NOT run the suggested CLI** (`firebase init/deploy`)
   — config is hand-authored later. Continue to console; verify
-  `<id>.web.app` + `<id>.firebaseapp.com` are listed.
+  `<id>.web.app` + `<id>.firebaseapp.com` are listed. ✅ Done 2026-06-28
+  — both domains listed.
 - [ ] **[Firebase]** gear → Project settings → General → Your apps → Web
   (`</>`). Nickname `panda`; **do NOT** tick "also set up Firebase
   Hosting" (re-enters the CLI flow). Register, then copy the whole
