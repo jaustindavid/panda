@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="panda">
+  <!-- Full-bleed background; the OS applies its own mask shape. -->
+  <rect width="512" height="512" fill="#0f172a"/>
+  <!-- Artwork scaled into the maskable safe zone (central ~62%). -->
+  <g transform="translate(256 256) scale(0.62) translate(-256 -256)">
+    <!-- ears -->
+    <circle cx="168" cy="156" r="60" fill="#0f0f0f"/>
+    <circle cx="344" cy="156" r="60" fill="#0f0f0f"/>
+    <!-- face -->
+    <circle cx="256" cy="276" r="150" fill="#f8fafc"/>
+    <!-- eye patches -->
+    <ellipse cx="200" cy="262" rx="42" ry="54" transform="rotate(-18 200 262)" fill="#0f0f0f"/>
+    <ellipse cx="312" cy="262" rx="42" ry="54" transform="rotate(18 312 262)" fill="#0f0f0f"/>
+    <!-- eyes -->
+    <circle cx="206" cy="270" r="15" fill="#f8fafc"/>
+    <circle cx="306" cy="270" r="15" fill="#f8fafc"/>
+    <!-- nose -->
+    <ellipse cx="256" cy="332" rx="22" ry="15" fill="#0f0f0f"/>
+  </g>
+</svg>

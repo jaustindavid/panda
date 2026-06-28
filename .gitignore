@@ -4,8 +4,10 @@
 # Dependencies + build artifacts
 node_modules/
 dist/
+dev-dist/
 build/
 coverage/
+*.tsbuildinfo
 
 # Local environment files (never committed)
 .env.local

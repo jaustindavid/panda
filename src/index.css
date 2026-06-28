@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+
+/* panda is dark-first; the discovery flow is used on a street corner,
+   often at night. Light mode is acceptable (PRD §9) but not the default. */
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  /* Honour the notch / home-indicator on installed iOS PWAs. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
