@@ -333,8 +333,19 @@ budget** is the email alert. The split-billing trigger is in §13.3.
   Maps' `utcOffsetMinutes`, which is correct for same-evening planning
   (_n_ ≤ 60, no DST crossing tonight) but **not** robust across a DST
   boundary; a true IANA-zone lookup (Time Zone API, extra cost) is deferred.
-- **Places caching ToS** — constrains what we can persist for
-  history/offline (§5); the override sidesteps it for go-ability.
+- **Places caching ToS** — settled (§11.2 Q3): only Place IDs (indefinite)
+  plus lat/lng (≤30 days) may be stored; name/hours/types/ratings re-hydrate
+  on demand. The override sidesteps it for go-ability. _Consequence: caching is
+  **not** an available cost lever — the §8 quota discipline (one search/
+  screen-load, client re-filter, daily cap) is the only one._
+- **Maps "closed community" clause (low confidence, low practical risk)** —
+  Google's terms discourage running a Maps Implementation **only** behind a
+  firewall / on an internal network / in a closed community without written
+  permission. panda is a **public-URL PWA** (Maps runs in any member's
+  browser; only the *data* is allowlisted), so it likely isn't
+  "internal-network-only" — but the "closed community" wording wasn't
+  verbatim-verified (§11.2 Q3 caveat). Aware, not acting; revisit if the app
+  ever goes truly private/intranet.
 - **Geolocation friction** — permission denial or poor accuracy degrades the
   core flow; need a graceful manual-location fallback.
 
@@ -363,21 +374,31 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    validation, now handled by the §8 quota cap.
    Citations: `developers.google.com/maps/.../rest/v1/places`,
    `.../data-fields`, `.../billing-and-pricing/pricing`.
-3. **Caching ToS:** verified we may **not** persist Maps hours beyond the
-   Place ID — the override sidesteps this (it's our own data). Still open:
-   (a) may we persist a minimal `{placeId, name}` snapshot for visit-history
-   display? **→ confirm before the M3/M4 brief.** (b) **Aggressive
-   list-caching (owner, 2026-06-28):** restaurants change slowly, so caching
-   the Nearby Search result (incl. hours) and re-polling ~monthly / per
-   quota reset — with a per-place **"refresh"** button to catch a notable
-   hours/closure change — would gut Maps spend (the §8 lever). **But this is
-   precisely the content caching the ToS constrains**, so its legality and
-   max duration are unknown. Place IDs cache indefinitely; our own data
-   (overrides/notes/visits) is free; the open part is Maps **content**.
-   **Resolution: a fact-finder on the CURRENT Places API caching terms**
-   (IDs-only vs a permitted field-caching window) gates both (a) and (b) —
-   the kit-canonical "verify Maps behavior before designing" move. Don't
-   guess. _Backlog: "Aggressive restaurant-list caching (ToS-gated)."_
+3. **Caching ToS — ✅ SETTLED 2026-06-28 (fact-finder, cited).** Maps
+   Platform Terms §3.2.3 "No Caching": you may **not** pre-fetch, cache, or
+   store Maps **Content** outside the live Service, with two exceptions —
+   **Place IDs** (store **indefinitely**; refresh ~12 mo, free via Place
+   Details `fields=id`) and **lat/lng** (cache **≤30 days**, then delete).
+   Everything else panda shows — **`displayName`, `regularOpeningHours`,
+   `types`, `rating` — must NOT be cached/stored; re-hydrate on demand.**
+   So: **(a)** the `{placeId, name}` snapshot — store the **ID only**;
+   re-hydrate the name via Place Details (`fields=id,displayName`) when
+   rendering history. **(b)** the **aggressive list-caching idea is not
+   viable** — caching the result with hours and re-polling monthly is
+   exactly what's forbidden; the legit savings are storing **Place IDs**
+   (skip repeat *searches* for the circle's known set) + tight field masks
+   on Details, **not** content caching. **Private/family use grants NO
+   carve-out** — §3.2.3 applies flat (and Google's terms separately
+   discourage firewall-/intranet-/closed-community-only deployments without
+   written permission — see §11.1; panda is a public-URL PWA so likely not
+   "internal-network-only," but the wording is worth a glance). Session-
+   scoped in-memory caching is fine. Cites: Maps Platform Service Specific
+   Terms §3.2.3 (`cloud.google.com/maps-platform/terms/maps-service-terms`),
+   `developers.google.com/maps/optimize-web-services`, `.../places/web-service/policies`,
+   `.../places/web-service/place-id` (all as-of 2026-06-26). _Caveat: the
+   verbatim §3.2.3 wording came via a mirror (Google's page truncates under
+   fetch) — eyeball it directly before any formal reliance; an EEA variant
+   may govern EEA users._
 4. **Circle bootstrap — ✅ SETTLED 2026-06-28.** v1 **hardcodes the
    circle's emails directly in `firestore.rules`** (leanest for a tiny
    fixed circle); there is **no** Firestore Membership collection. Adding/

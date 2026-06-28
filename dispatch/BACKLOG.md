@@ -83,16 +83,18 @@ fire.
   fast-follow); genre-scoped re-search when a tapped genre is sparse.
   `searchNearby` (New) has no paging → bigger radius / recenter, or switch
   to Text Search. Owner FR 2026-06-28. _Design: PRD §11.2 Q10._
-- `[ ]` **`{placeId, name}` history snapshot** [XS] — gated on the
-  Places caching-ToS answer (PRD §11.2 Q3). Resolve before M3/M4 if
-  visit history needs offline-readable place names.
-- `[ ]` **Aggressive restaurant-list caching (ToS-gated)** [M] — cache
-  the Nearby Search result + re-poll ~monthly / per quota reset, with a
-  per-place "refresh" button; would gut Maps spend (§8 lever). **Blocked
-  on a Places-caching-ToS fact-finder** — caching Maps *content* (hours,
-  names) beyond the Place ID is the constrained case; legality + max
-  duration unknown. IDs cache indefinitely; our own data is free. Owner
-  FR 2026-06-28. _Design: PRD §11.2 Q3(b); run the fact-finder first._
+- `[ ]` **Visit/saved-place re-hydration pattern** [XS] — ToS-settled
+  (§11.2 Q3): store **`placeId` only** for history/saved places; re-hydrate
+  the display name via Place Details (`fields=id,displayName`) on render.
+  No `{placeId,name}` durable snapshot. Bake this into M3/M4. _Supersedes
+  the old "{placeId,name} snapshot" item._
+- `[~]` **Aggressive restaurant-list caching — NOT VIABLE** [killed] —
+  fact-finder (2026-06-28) confirmed Maps ToS §3.2.3 forbids caching
+  content (hours/name/types). Monthly-poll-and-cache is out. The compliant
+  remnant: store **Place IDs** for the circle's known set (skip repeat
+  *searches*) + tight Place Details field masks — folded into the
+  re-hydration item above. _Caching is not a cost lever; §8 quota
+  discipline is. PRD §11.2 Q3._
 - `[ ]` **Holiday-aware hours** [S] — prefer `currentOpeningHours`
   (special-days, ~7-day window) over `regularOpeningHours` in the go-able
   filter. _Deferred from M2 (PRD §11.2 Q2)._
