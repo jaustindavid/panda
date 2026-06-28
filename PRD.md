@@ -394,8 +394,18 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    speed; no extra API call; rough but captures far-vs-near; (b) _accurate_
    — Routes / Distance Matrix per place (real walk/drive time, traffic) but
    a separate billed SKU × up to 20 places. UX shift: the home chip relabels
-   to "leave in…", and each card shows its own arrival. _Later chamber;
-   (a) is the likely first cut._
+   to "leave in…", and each card shows its own arrival.
+   **Refinement (owner, 2026-06-28 — lives near a river):** straight-line
+   distance can be **actively misleading**, not just imprecise — a place
+   1.8 km crow-flies may be 20 min away because you must detour to a bridge.
+   That **defeats lean option (a)** (it's derived from the same crow-flies
+   number), so for users near a geographic barrier (river/highway/water)
+   only **(b) real routing** delivers the value. Two separable scopes: (b1)
+   _display_ travel time alongside distance ("1.8 km · ~20 min" — both true,
+   the owner's words) without changing go-ability; (b2) _feed_ travel time
+   into the per-place arrival calc above. (b1) is the smaller, shippable
+   first step; both carry the Routes/Distance-Matrix per-place cost (weigh
+   vs the §8 quota — batch ≤20, cache per session). _Later chamber._
 
 ---
 

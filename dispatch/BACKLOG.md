@@ -57,11 +57,16 @@ fire.
   "never show", the inverse of favoriting); hard-excludes from
   discovery + roulette. Per-place only; no brand/category rules. _Committed.
   Design: PRD §1.3, §3, §5 (NoGo), §6, §7 (F7)._
-- `[~]` **Departure buffer + per-place travel time** [M] — reinterpret
-  the when-chip as "leave in…"; `arrival(place) = now + buffer +
-  travel(place)`. Lean first cut: estimate travel from straight-line
-  distance (no extra API); accurate = Routes / Distance Matrix (extra
-  SKU). _Design: PRD §11.2 Q9._
+- `[~]` **Travel time vs straight-line distance** [M] — reinterpret the
+  when-chip as "leave in…"; `arrival(place) = now + buffer +
+  travel(place)`. **Owner FR 2026-06-28 (lives near a river):**
+  straight-line distance is *misleading* across barriers — 1.8 km
+  crow-flies can be 20 min via a bridge — which **defeats** the lean
+  distance÷speed estimate; real routing (Routes / Distance Matrix, extra
+  SKU) is what delivers it. Split: (b1) just **show** "1.8 km · ~20 min"
+  on cards (smaller, no go-able change); (b2) feed travel time into the
+  per-place arrival calc. Mind the §8 quota (batch ≤20, cache per
+  session). _Design: PRD §11.2 Q9._
 - `[ ]` **`{placeId, name}` history snapshot** [XS] — gated on the
   Places caching-ToS answer (PRD §11.2 Q3). Resolve before M3/M4 if
   visit history needs offline-readable place names.
