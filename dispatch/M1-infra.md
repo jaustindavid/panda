@@ -294,9 +294,10 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
 
 ### 7.3 · Firebase — Firestore, Hosting, Web app
 
-- [ ] **[Firebase]** Databases → Firestore → Create database →
-  **production mode** (not test mode) → location `nam5` → leave the
-  deny-all default rules.
+- [x] **[Firebase]** Databases → Firestore → Create database → location
+  `nam5` → **production mode** (not test mode) → leave the deny-all
+  default rules. ✅ Done 2026-06-28. (Order: the wizard asks **location
+  before** mode.)
 - [ ] **[Firebase]** Hosting & Serverless → Hosting → Get started → click
   through. ⚠️ **Do NOT run the suggested CLI** (`firebase init/deploy`)
   — config is hand-authored later. Continue to console; verify
