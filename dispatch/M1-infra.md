@@ -228,8 +228,8 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
 
 ### 7.0 · Pre-flight
 
-- [ ] `gcloud` + `firebase` CLIs installed, logged into the **right**
-  Google account (`firebase login`); Node ≥ 20.
+- [x] `firebase` CLI present (15.18.0) + Node ≥ 20 (v26). ⚠️ Still do
+  `firebase login` with the **right** Google account before deploy.
 - [x] panda repo open locally; create a gitignored
   `dispatch/M1-g-outputs.md` to paste captured values into. ✅
 - [x] §4 decisions in hand: Project ID (`panda-bamboo-lane`), Firestore
@@ -354,19 +354,28 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
 
 ### 7.5 · Code-side wiring (rides with the app — see §3, not pure ops)
 
-- [ ] Create `.env.local` from the captured config. ⚠️ Set
-  `VITE_FIREBASE_AUTH_DOMAIN=<id>.web.app` (**not** `firebaseapp.com` —
-  silent Chrome breakage); add `VITE_GOOGLE_MAPS_API_KEY=…`; **omit**
-  `measurementId`.
-- [ ] Hand-author `.firebaserc` + `firebase.json`; add an `npm run
-  deploy` script (build → `firebase use` → `firebase deploy --only
-  hosting`).
-- [ ] Firebase init module, the Google provider
-  (`prompt: 'select_account'`), the allowlist gate, and
-  `firestore.rules` + emulator tests land here (§3) — fine as a small
-  code dispatch right after.
+✅ **Authored 2026-06-28** (nautilus, commit `281cef7`); gates green
+(typecheck/lint/unit/build + 20 emulator rules tests). Remaining boxes are
+the owner's deploy + live check.
 
-Then run the §5 verification and close out per §8.
+- [x] `.env.local` from the captured config — `VITE_FIREBASE_AUTH_DOMAIN`
+  = `<id>.web.app` (the rake), `VITE_GOOGLE_MAPS_API_KEY` added,
+  `measurementId` omitted. Committed `.env.example` as the template.
+- [x] `.firebaserc` + `firebase.json` (hosting SPA rewrite + firestore +
+  emulator) hand-authored; `npm run deploy` (build → deploy
+  hosting,firestore:rules) + `npm run test:rules`.
+- [x] `src/lib/firebase.ts` (provider `prompt: 'select_account'`,
+  `measurementId` omitted), the auth gate (`AuthProvider` + screens),
+  the **hardcoded allowlist** (`src/lib/allowlist.ts` mirrors
+  `isMember()`), `firestore.rules` per §6 + 20 emulator rules tests.
+- [ ] **[OWNER]** Add the rest of the circle's emails to **both**
+  `src/lib/allowlist.ts` and `firestore.rules` `isMember()`.
+- [ ] **[OWNER]** `firebase login` (CLI present) → `npm run deploy`.
+- [ ] **[OWNER]** §5 live check: visit `<id>.web.app`, sign in with an
+  allowlisted Gmail, confirm you land in (and a non-listed account hits
+  "not on the list").
+
+Then close out per §8 (handoff + ARCHITECTURE draft + BACKLOG M1 → Done).
 
 ---
 
