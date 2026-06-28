@@ -44,9 +44,14 @@ from Google Maps; the notes/visits layer is the circle's own.
   not broadcast or alert. (Possible later chamber.)
 - **No multiple independent groups.** One circle. Multi-group is a later
   chamber.
-- **No custom tags or named lists.** Genre = Maps types only.
-- **No explicit favorites/saved system.** A place is "yours" implicitly via
-  a note or visit.
+- **No custom tags or named lists.** Genre = Maps types only. (A single
+  flat saved set is now in — see next line — but **named/tagged lists**
+  stay out.)
+- **Explicit favorites/saved system** — _was a non-goal; **reversed by
+  owner FR 2026-06-28.**_ A basic **add-restaurant-by-name** saved set
+  (far favorites that join discovery + roulette) is now a committed chamber
+  (§1.3, §5, §7 F8). Still out: named/tagged or per-user lists — the saved
+  set is one flat, circle-shared list keyed on Place ID.
 - **No public/anonymous use.** Membership is allowlisted; nothing is
   world-readable.
 - **Not a reviews platform.** Notes are private to the circle, not public
@@ -67,6 +72,15 @@ Tracked in BACKLOG.md once the kit scaffolding lands.
   category rules (there's no chain/brand ID in the Places API, and "hotel
   restaurant" isn't a Maps type). Schema sketched in §5; ships after the
   M1–M5 core.
+- **Add restaurants by name (saved favorites)** _(owner FR 2026-06-28)_ —
+  a circle-shared, **per-place** saved set: search a place **by name**
+  (Places **Text Search**, a new surface) → store its **Place ID** → it
+  joins discovery + roulette **regardless of proximity**, so "not close"
+  favorites stay in the rotation. The symmetric twin of the no-go list
+  (NoGo = always-hide; SavedPlace = always-include). Per ToS, store only
+  the Place ID; re-hydrate name/hours via Place Details each load (mind the
+  `GetPlaceRequest` 50/day cap × N favorites). Schema sketched in §5; pairs
+  naturally with **M5 roulette**.
 
 **Speculative candidate chambers:** live "here now" presence; invite-link
 onboarding; custom tags; multi-circle; saved lists; per-day/per-meal
@@ -182,6 +196,13 @@ display details from Maps on demand.
   Hard-excludes the Place from discovery + roulette via a client-side
   filter. panda's own data (a Place-ID flag), unaffected by the Places
   caching ToS.
+- **SavedPlace (planned — later chamber; owner FR 2026-06-28)** — doc id =
+  `placeId`, `addedByUid`, `addedAt`. One per Place. Read: members; write:
+  any member (add/remove). Hard-**includes** the Place in discovery +
+  roulette regardless of proximity (the inverse of NoGo). Stores only the
+  Place ID (ToS); name/hours/location re-hydrate via Place Details on load.
+  Added via name search (Places Text Search). panda's own data (a Place-ID
+  flag), unaffected by the Places caching ToS.
 - **Place (not stored)** — referenced by `placeId`; name / hours / genre /
   location / rating hydrated from Maps at display time. _Open question
   (§11.2): whether a minimal `{placeId, name}` snapshot may be persisted for
@@ -203,6 +224,8 @@ Single circle; all members are peers. Per entity:
 - **PlaceOverride:** read = members; create / update / delete = any member
   (collective circle knowledge, not author-locked).
 - **NoGo** _(later chamber)_: read = members; create / delete = any member.
+- **SavedPlace** _(later chamber)_: read = members; create / delete = any
+  member.
 
 Nothing is readable by non-members. Rules mirror this table one-to-one.
 
@@ -251,10 +274,13 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   any result/detail → tap "never show" → the Place is hard-excluded from
   discovery + roulette for the whole circle. AC: blocked Places never appear
   in F1 or F2; any member can block or un-block. _Ships post-core (§1.3)._
-
----
-
-## 8. Cost control
+- **F8 — Add by name (later chamber; owner FR 2026-06-28).** Goal: keep a
+  "not close" favorite in the rotation. Steps: search a restaurant **by
+  name** (Places Text Search) → pick it → it's saved (Place ID) for the
+  whole circle and joins discovery + roulette regardless of distance. AC:
+  saved places appear in F1/F2 even when far (still subject to the go-able
+  test on their own hours); any member can add or remove; stores only the
+  Place ID, name/hours re-hydrated on display. _Ships post-core (§1.3)._
 
 Google Maps Platform is the only metered dependency, and **opening-hours
 fields force the Enterprise SKU** — so the constrained resource is the
