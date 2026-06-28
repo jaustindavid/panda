@@ -102,9 +102,9 @@ Platform requires a Cloud Billing account on the project.
 Do flog runbook Phase 1 steps 1–8 with these panda specifics, heeding
 the inlined rakes (§6):
 
-- **Project ID:** a globally-unique id — suggest `panda-ad` or
-  `panda-<word>`. **Manually edit the ID field** (GCP auto-suffixes
-  otherwise; IDs are immutable). [OWNER PICKS]
+- **Project ID:** decided — **`panda-bamboo-lane`**. **Manually edit the
+  ID field** to this exact value (GCP auto-suffixes otherwise; IDs are
+  immutable).
 - **Analytics:** OFF (PRD §1.4).
 - **OAuth consent:** External, **Testing** mode, **no logo**, support
   email = a Google-managed mailbox (no forwarding alias), test users =
@@ -154,7 +154,7 @@ the console work. Reuse flog's patterns:
 
 ## 4. Owner inputs (decide at execution)
 
-- [ ] **Project ID** (globally unique; suggest `panda-ad`).
+- [x] **Project ID** — `panda-bamboo-lane`.
 - [ ] **Firestore region** (default `nam5`).
 - [ ] **Circle allowlist** — the family's Google-account emails.
 - [ ] **Confirm:** link panda to route7's shared billing account.
@@ -214,7 +214,9 @@ The ordered end-to-end path. The work hops between **two** consoles — the
 Console** (`console.firebase.google.com`) — so each step is tagged with
 which one. Paths come from flog's runbook (dated 2026-05-25, §0) plus
 panda's Maps/billing deltas (§1). **UIs drift — if a label has moved,
-trust the requirement, not the breadcrumb.** Tick each box as you go.
+trust the requirement, not the breadcrumb.** Throughout, `<id>` is the
+Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
+`panda-bamboo-lane.web.app`). Tick each box as you go.
 
 ### 7.0 · Pre-flight
 
@@ -222,16 +224,16 @@ trust the requirement, not the breadcrumb.** Tick each box as you go.
   Google account (`firebase login`); Node ≥ 20.
 - [ ] panda repo open locally; create a gitignored
   `dispatch/M1-g-outputs.md` to paste captured values into.
-- [ ] §4 decisions in hand: Project ID (suggest `panda-ad`), Firestore
+- [ ] §4 decisions in hand: Project ID (`panda-bamboo-lane`), Firestore
   region (`nam5`), the circle's Gmails, confirm the **shared** billing
-  account.
+  account. Project ID is decided: **`panda-bamboo-lane`**.
 
 ### 7.1 · GCP — project + shared billing  (Δ1)
 
 - [ ] **[GCP]** `console.cloud.google.com/projectcreate`. Name = `panda`
   (display only). **Click Edit on the Project ID and type it manually**
-  (e.g. `panda-ad`); it must read "✓ Available". Org: none (personal).
-  Create.
+  as **`panda-bamboo-lane`**; it must read "✓ Available". Org: none
+  (personal). Create.
   ⚠️ Don't skip the manual edit — GCP appends a permanent 6-digit
   suffix and IDs are immutable.
 - [ ] **[GCP]** Billing → **Link a billing account** → pick route7's
@@ -243,7 +245,8 @@ trust the requirement, not the breadcrumb.** Tick each box as you go.
 ### 7.2 · Firebase + Auth — consent, sign-in, the THREE domain lists
 
 - [ ] **[Firebase]** `console.firebase.google.com` → Add project → **Add
-  Firebase to a Google Cloud project** → pick `panda-ad`. **Analytics:
+  Firebase to a Google Cloud project** → pick `panda-bamboo-lane`.
+  **Analytics:
   OFF** (PRD §1.4). Add Firebase.
 - [ ] **[GCP]** APIs & Services → **OAuth Consent Screen** → Get started:
   User type **External**, status **Testing** (not Published), **no
