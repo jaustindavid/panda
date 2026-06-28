@@ -322,8 +322,10 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
     `https://<id>.web.app/*`, `https://<id>.firebaseapp.com/*`
   - API restriction → **Places API (New)** [+ Maps JS API if used].
     Nothing else.
-- [ ] **[GCP]** APIs & Services → Places API (New) → Quotas & System
-  Limits. ⚠️ The New API exposes **per-method** daily quotas (one row
+- [x] **[GCP]** APIs & Services → Places API (New) → Quotas & System
+  Limits. ✅ Done 2026-06-28 — capped the two panda uses to 50/day;
+  unused-method hardening **deferred** until the app is verified working
+  (BACKLOG). ⚠️ The New API exposes **per-method** daily quotas (one row
   per RPC), **not** a single global "Requests per day". Cap the methods
   panda actually uses to ~**50/day**:
   - **`SearchNearbyRequest` per day → 50** ⭐ — this is Nearby Search,

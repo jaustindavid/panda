@@ -77,6 +77,13 @@ fire.
 - `[ ]` **Holiday-aware hours** [S] — prefer `currentOpeningHours`
   (special-days, ~7-day window) over `regularOpeningHours` in the go-able
   filter. _Deferred from M2 (PRD §11.2 Q2)._
+- `[ ]` **Tighten unused Places method quotas** [XS] — cap/zero the
+  per-day quotas panda never calls (`SearchTextRequest`,
+  `GetPhotoMediaRequest`) once discovery is verified working. The Maps
+  key is API- but **not** method-restricted, so this shrinks a
+  leaked-key blast radius on the shared billing account.
+  `SearchNearbyRequest` + `GetPlaceRequest` are already at 50/day.
+  _From M1 §7.4; deferred 2026-06-28 — harden after it works._
 - `[ ]` **Live "here now" presence** [L] — broadcast presence to the
   circle (push, ephemerality, privacy controls). Big; only if asked for.
 - `[ ]` **Invite-link onboarding** [M] — replace manual allowlist edits
