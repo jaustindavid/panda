@@ -312,11 +312,12 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
 
 ### 7.4 · GCP — Maps API, restricted key, cost controls  (Δ2, Δ3)
 
-- [ ] **[GCP]** APIs & Services → Library → **"Places API (New)"** →
+- [x] **[GCP]** APIs & Services → Library → **"Places API (New)"** →
   Enable. (Also enable **Maps JavaScript API** only if the map view
-  uses it.)
-- [ ] **[GCP]** APIs & Services → Credentials → Create credentials → API
-  key, then **Restrict key** (mandatory on a shared card):
+  uses it.) ✅ Done 2026-06-28.
+- [x] **[GCP]** APIs & Services → Credentials → Create credentials → API
+  key, then **Restrict key** (mandatory on a shared card): ✅ Done
+  2026-06-28 — key captured in gitignored `dispatch/M1-g-outputs.md`.
   - Application restriction → **HTTP referrers**: `http://localhost:5173/*`,
     `https://<id>.web.app/*`, `https://<id>.firebaseapp.com/*`
   - API restriction → **Places API (New)** [+ Maps JS API if used].
