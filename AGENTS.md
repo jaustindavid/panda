@@ -1,6 +1,6 @@
 # panda — AGENTS.md
 
-_Copyright © 2026 Austin David. All rights reserved._
+_© 2026 Austin David. Released under CC0 1.0 (public domain) — see LICENSE._
 
 > panda is built with Claude (Anthropic) as a continuous collaborator.
 > The PRD, ARCHITECTURE doc, and most code are produced via human-AI
@@ -129,9 +129,11 @@ The cost of pausing is low; a reverted PR is higher.
 
 ## Project identity
 
-panda is a **private, personal project** for a small family circle. All
-rights reserved. Treat planning docs and code accordingly: no public
-posting of internals, no copying to other repos. If unclear, ask.
+panda is a **private, personal, non-commercial** hobby app for a small
+family circle. The repo is private; the code is dedicated to the public
+domain under CC0 1.0 (see LICENSE), so there is no "all rights reserved"
+restriction on it. The circle's data lives in Firestore, not the repo.
+If unclear, ask.
 
 ---
 
@@ -140,7 +142,7 @@ posting of internals, no copying to other repos. If unclear, ask.
 Every top-level markdown deliverable (PRD, ARCHITECTURE, README, AGENTS,
 design docs) opens with two lines under the title:
 
-1. `_Copyright © 2026 Austin David. All rights reserved._`
+1. `_© 2026 Austin David. Released under CC0 1.0 (public domain) — see LICENSE._`
 2. The AI-first preamble blockquote (the one that opens this file).
 
 Apply automatically — the owner won't remember to ask.

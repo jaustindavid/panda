@@ -1,12 +1,12 @@
 # panda — Product Requirements Document (v1)
 
-_Copyright © 2026 Austin David. All rights reserved._
+_© 2026 Austin David. Released under CC0 1.0 (public domain) — see LICENSE._
 
 > panda is built with Claude (Anthropic) as a continuous collaborator.
 > The PRD, ARCHITECTURE doc, and most code are produced via human-AI
 > pairing — the planning docs are written dense and self-contained so a
 > fresh Claude session can cold-read and contribute immediately.
-
+>
 > **Status: v1 draft, 2026-06-26.** Items tagged _(inferred — confirm)_ are
 > the nautilus's proposals awaiting owner ratification; open questions live
 > in §11.2. The **go-able semantic**, the **Places/cost facts**, and the
@@ -208,7 +208,8 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
 - **F1 — Discovery (home).** Goal: see go-able places for when we want to
   go. Steps: open → grant location → choose **when** via
   **[Now] [+15] [+30] [+60]** chips (default **+15**, a travel-time proxy;
-  the active chip shows the resolved arrival time, e.g. "+15 · 7:25") → list + map of **go-able**
+  the active chip shows the resolved arrival time, e.g. "+15 · 7:25") →
+  list + map of **go-able**
   places (open at arrival _and_ still open at arrival + 75 min) → filter by
   genre → tap a place. AC: results satisfy the §3 go-able test against the
   selected offset and the fixed 75-min meal duration, evaluated in the
@@ -338,7 +339,8 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    pass).** "Open" = go-able for a meal: open at arrival (now + _n_) AND
    still open at finish (now + _n_ + _m_), same continuous interval.
    Controls: **Now / +15 / +30 / +60** chips for _n_ (default **+15**, a
-   travel-time proxy); _m_ fixed at **75 min**, not user-facing. Override: a single per-place
+   travel-time proxy); _m_ fixed at **75 min**, not user-facing. Override: a
+   single per-place
    `closeBufferMin` delta (minutes before posted close), circle-shared,
    precedence **override > KITCHEN secondary hours > posted hours**.
    Evaluated in the place's local time; defensive past-midnight wrap; never

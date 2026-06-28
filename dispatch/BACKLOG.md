@@ -1,6 +1,6 @@
 # panda — Working backlog
 
-_Copyright © 2026 Austin David. All rights reserved._
+_© 2026 Austin David. Released under CC0 1.0 (public domain) — see LICENSE._
 
 > panda is built with Claude (Anthropic) as a continuous collaborator.
 > The PRD, ARCHITECTURE doc, and most code are produced via human-AI
@@ -21,11 +21,6 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 
 Active candidates for the immediate next dispatch.
 
-- `[~]` **App scaffold** [M] — Vite + React + TS + Tailwind + PWA shell
-  (manifest + service worker), installable, runs locally with no
-  backend. Establishes the repo's code structure, ESLint, and the app
-  shell the discovery UI mounts into. No infra dependency — can run
-  before or parallel to M1. _Design: PRD §4, §9._
 - `[~]` **M1 — Infrastructure (ops)** [ops; high-friction] — new
   Firebase project under the **shared** billing account; Firebase Auth
   (Google) + allowlist gate; Firestore + rules; Hosting + deploy; Maps
@@ -33,7 +28,8 @@ Active candidates for the immediate next dispatch.
   cap**; project-scoped budget alert. Requirements-shaped brief; run
   past the route7 nautilus first (kit M1 consult); owner executes the
   console steps. ARCHITECTURE.md gets drafted here. _Design: PRD §4, §8,
-  §10, §13._
+  §10, §13. Brief: dispatch/M1-infra.md — drafted, pending route7
+  consult._
 
 ---
 
@@ -67,8 +63,8 @@ Committed and speculative chambers, post-core. Move to Soon as triggers
 fire.
 
 - `[~]` **No-go list** [S] — circle-shared **per-place** block (one-tap
-  "never show", the inverse of favoriting); hard-excludes from discovery
-  + roulette. Per-place only; no brand/category rules. _Committed.
+  "never show", the inverse of favoriting); hard-excludes from
+  discovery + roulette. Per-place only; no brand/category rules. _Committed.
   Design: PRD §1.3, §3, §5 (NoGo), §6, §7 (F7)._
 - `[~]` **Departure buffer + per-place travel time** [M] — reinterpret
   the when-chip as "leave in…"; `arrival(place) = now + buffer +
@@ -95,8 +91,16 @@ fire.
 
 ## Done
 
-(empty — populate as dispatches ship; each Done entry gets a
-substantive summary line so future readers understand what landed)
+- `[x]` **App scaffold** [M] — 2026-06-27. Vite 8 + React 19 + TS 6
+  (strict, project refs) + Tailwind v4 (`@tailwindcss/vite`, no config
+  file) + PWA (`vite-plugin-pwa`, autoUpdate, generated SW + manifest,
+  SVG icons). Mobile-first `AppShell` (dark-first, safe-area) the
+  discovery UI mounts into; placeholder home. ESLint v10 flat config
+  (`no-explicit-any` = error); Vitest wired with a smoke test (go-able
+  suite lands M2). Runs with no backend. All gates green; shell visually
+  verified. Authored by the nautilus directly (no sub-agent). Decisions +
+  rakes (notably the react-hooks v7 / ESLint 10 flat-config array bug) in
+  dispatch/app-scaffold-handoff.md. _Owner reviews + commits._
 
 ---
 
