@@ -192,7 +192,7 @@ the console work. Reuse flog's patterns:
 - **GCP project-count ceiling (hit 2026-06-28)** — accounts cap active
   projects (owner hit a default of ~5). Creating a new project needed a
   quota-increase request **and** deleting a defunct project first. Has
-  lead time; not instant.
+  lead time; not instant. _Limit since raised to 15 (2026-06-28)._
 - **Unrestricted Maps key = cost hole** — referrer + API restrictions
   are mandatory, especially on a shared card.
 - **Three authorized-domains lists** — all required; missing one
@@ -245,7 +245,8 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
   ⚠️ **Project-count ceiling (hit 2026-06-28):** GCP caps active
   projects per account (owner hit a default of ~5). Creating panda
   needed a quota-increase request **and** deleting a defunct old
-  project first — not instant; budget the lead time.
+  project first — not instant; budget the lead time. _Resolved: limit
+  raised to **15** (approved 2026-06-28) — headroom for a while._
 - [x] **[GCP]** Billing → **Link a billing account** → the owner's
   **personal** Cloud Billing account (the same one route7 bills to — the
   "shared" account in §8 terms). This moves Firebase to **Blaze**
