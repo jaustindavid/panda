@@ -46,10 +46,11 @@ panda needs Google Maps Platform; flog did not. Three consequences.
 flog stayed on Spark (no billing attached). **panda cannot** — Maps
 Platform requires a Cloud Billing account on the project.
 
-- **Requirement:** panda's GCP project is linked to route7's
-  **existing (shared)** Cloud Billing account. Decision: PRD §8, §13;
-  route7's Enterprise Places usage is ~0, so combined stays under the
-  1,000 free Enterprise calls/mo.
+- **Requirement:** panda's GCP project is linked to the owner's
+  **personal** Cloud Billing account — the **same** account route7 uses
+  ("shared" in §8 terms). Decision: PRD §8, §13; route7's Enterprise
+  Places usage is ~0, so combined stays under the 1,000 free Enterprise
+  calls/mo. _Linked 2026-06-28._
 - Attaching billing puts Firebase on the **Blaze** (pay-as-you-go)
   plan. Expected and fine — Firestore / Auth / Hosting free-tier
   allotments still apply; you only pay past them.
@@ -157,7 +158,8 @@ the console work. Reuse flog's patterns:
 - [x] **Project ID** — `panda-bamboo-lane`.
 - [ ] **Firestore region** (default `nam5`).
 - [ ] **Circle allowlist** — the family's Google-account emails.
-- [ ] **Confirm:** link panda to route7's shared billing account.
+- [x] **Billing:** linked to the owner's personal Cloud Billing account
+  (the account route7 uses; "shared" per §8). _2026-06-28._
 - **Custom domain:** NOT in M1. Default `<project-id>.web.app` for v1;
   a custom domain is a later chamber (flog flags it as multi-rake —
   Cloudflare DNS, cert, re-doing all three domain lists + redirect
@@ -187,6 +189,10 @@ the console work. Reuse flog's patterns:
   IDs are immutable.
 - **Billing inversion (panda-specific)** — you DO attach billing, to
   the shared account; cap spend via quotas, not by withholding it.
+- **GCP project-count ceiling (hit 2026-06-28)** — accounts cap active
+  projects (owner hit a default of ~5). Creating a new project needed a
+  quota-increase request **and** deleting a defunct project first. Has
+  lead time; not instant.
 - **Unrestricted Maps key = cost hole** — referrer + API restrictions
   are mandatory, especially on a shared card.
 - **Three authorized-domains lists** — all required; missing one
@@ -230,17 +236,23 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
 
 ### 7.1 · GCP — project + shared billing  (Δ1)
 
-- [ ] **[GCP]** `console.cloud.google.com/projectcreate`. Name = `panda`
+- [x] **[GCP]** `console.cloud.google.com/projectcreate`. Name = `Panda`
   (display only). **Click Edit on the Project ID and type it manually**
   as **`panda-bamboo-lane`**; it must read "✓ Available". Org: none
-  (personal). Create.
+  (personal). Create. ✅ Done — ID confirmed (no auto-suffix).
   ⚠️ Don't skip the manual edit — GCP appends a permanent 6-digit
   suffix and IDs are immutable.
-- [ ] **[GCP]** Billing → **Link a billing account** → pick route7's
-  **existing (shared)** account. This moves Firebase to **Blaze**
+  ⚠️ **Project-count ceiling (hit 2026-06-28):** GCP caps active
+  projects per account (owner hit a default of ~5). Creating panda
+  needed a quota-increase request **and** deleting a defunct old
+  project first — not instant; budget the lead time.
+- [x] **[GCP]** Billing → **Link a billing account** → the owner's
+  **personal** Cloud Billing account (the same one route7 bills to — the
+  "shared" account in §8 terms). This moves Firebase to **Blaze**
   (expected; Maps requires it — free-tier allotments still apply).
+  ✅ Done.
   ⚠️ This inverts flog's "never attach billing" rake: here you DO
-  attach it (to the shared account) and cap spend via quotas (7.4).
+  attach it and cap spend via quotas (7.4).
 
 ### 7.2 · Firebase + Auth — consent, sign-in, the THREE domain lists
 
