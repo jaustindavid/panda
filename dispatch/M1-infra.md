@@ -263,11 +263,15 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
   ℹ️ Because billing is already linked (7.1), Firebase offers **only**
   the **Blaze / Pay-as-you-go** plan — no Spark choice to make. Expected
   (Δ1); free-tier allotments still apply, cost is capped at 7.4.
-- [ ] **[GCP]** APIs & Services → **OAuth Consent Screen** → Get started:
-  User type **External**, status **Testing** (not Published), **no
-  logo** (logo → brand verification), support email = a real Google
-  mailbox (no forwarding alias). Under **Audience**, add every circle
-  Gmail as a **test user** (≤100). Leave scopes default.
+- [ ] **[GCP]** APIs & Services → **OAuth Consent Screen**. Current flow
+  (2026-06-28 — drifted from flog's 2026-05-25 runbook):
+  - **Get started** wizard collects only **User type = External** + the
+    **support email** (a real Google mailbox; no forwarding alias).
+  - **Branding** sub-screen: **publishing status `Testing`** and **no
+    logo** are both the **defaults** — just verify, don't change. (A
+    logo upload would trigger brand verification; that's why we leave it.)
+  - **Audience** sub-screen: add every circle Gmail as a **test user**
+    (≤100). Leave scopes default.
 - [ ] **[Firebase]** Security → Authentication → Get started → Sign-in
   method → **Google → Enable** (support email matches above). This
   auto-creates the OAuth Web client used just below.
