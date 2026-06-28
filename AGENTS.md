@@ -18,9 +18,9 @@ intentionally short; the canonical docs do the heavy lifting.
 1. **[PRD.md](PRD.md)** — what to build. Data model (§5), access
    control (§6), user flows (§7), cost spec (§8), milestones (§10),
    open questions (§11.2).
-2. **ARCHITECTURE.md** — how to build it. _Not written yet; drafted
-   during M1 once infra settles. Until then, PRD §4 is the high-level
-   shape._
+2. **[ARCHITECTURE.md](ARCHITECTURE.md)** — how to build it. Drafted
+   during M1 (2026-06-28); grows per milestone. PRD §4 is the condensed
+   shape.
 
 Do not start writing code until the PRD (and ARCHITECTURE, once it
 exists) is read. The planning docs are written for cold-read.

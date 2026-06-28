@@ -21,29 +21,20 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 
 Active candidates for the immediate next dispatch.
 
-- `[~]` **M1 — Infrastructure (ops)** [ops; high-friction] — new
-  Firebase project under the **shared** billing account; Firebase Auth
-  (Google) + allowlist gate; Firestore + rules; Hosting + deploy; Maps
-  API key (Places API New, referrer-restricted) + **per-API daily quota
-  cap**; project-scoped budget alert. Requirements-shaped brief; run
-  past the route7 nautilus first (kit M1 consult); owner executes the
-  console steps. ARCHITECTURE.md gets drafted here. _Design: PRD §4, §8,
-  §10, §13. Brief: dispatch/M1-infra.md — drafted, pending route7
-  consult._
-
----
-
-## Soon
-
-The v1 feature build, smallest-friction-first after M1.
-
 - `[~]` **M2 — Discovery core + go-able** [L] — geolocation → one Nearby
   Search → the go-able filter (chips Now/+15/+30/+60 default +15, m=75,
   place-local time, precedence override > KITCHEN > posted, midnight
   wrap, no period-merge, override clamp, hours-unknown shown) → list +
   map, genre filter. The go-able filter is the project's most edge-dense
   code → thorough unit tests. Fact-finder facts already gathered.
-  _Design: PRD §3, §7 (F1), §8, §11.2 Q1–Q2._
+  **Unblocked — M1 done.** _Design: PRD §3, §7 (F1), §8, §11.2 Q1–Q2._
+
+---
+
+## Soon
+
+The v1 feature build, smallest-friction-first after M2.
+
 - `[~]` **M3 — Place detail + notes** [M] — place detail view; shared,
   attributed notes (read / write / edit-own / delete-own). _Design: PRD
   §5, §6, §7 (F4)._
@@ -84,6 +75,10 @@ fire.
   leaked-key blast radius on the shared billing account.
   `SearchNearbyRequest` + `GetPlaceRequest` are already at 50/day.
   _From M1 §7.4; deferred 2026-06-28 — harden after it works._
+- `[ ]` **JS bundle size / code-splitting** [XS] — the Firebase SDK pushes
+  the bundle to ~207 kB gzip (over Vite's 500 kB raw warning). Lazy-load
+  Firestore / split chunks for faster first paint on cellular (PRD §9).
+  _From M1; revisit once M2 lands more code._
 - `[ ]` **Live "here now" presence** [L] — broadcast presence to the
   circle (push, ephemerality, privacy controls). Big; only if asked for.
 - `[ ]` **Invite-link onboarding** [M] — replace manual allowlist edits
@@ -98,6 +93,20 @@ fire.
 
 ## Done
 
+- `[x]` **M1 — Infrastructure** [ops] — 2026-06-28. GCP/Firebase project
+  `panda-bamboo-lane` on the owner's personal (route7-shared) billing
+  account; Google Auth (External/Testing) + **hardcoded-in-rules
+  allowlist** (4 members; PRD §11.2 Q4 — no Membership collection);
+  Firestore (`nam5`, deny baseline → rules deployed, mirrors PRD §6) with
+  20 emulator rules tests; Hosting live at `panda-bamboo-lane.web.app`;
+  Places API (New) key (referrer + API restricted) with
+  `SearchNearbyRequest`/`GetPlaceRequest` capped at 50/day. Code companion
+  (`281cef7`): firebase init, redirect auth gate, screens. **Headline
+  rake:** the PWA service worker hijacked Firebase's `/__/auth/*` routes →
+  sign-in hung on "Loading…" (no errors); fixed with
+  `navigateFallbackDenylist` (`749bfa8`). End-to-end Google sign-in
+  verified on the deployed PWA. Full record: dispatch/M1-infra.md +
+  dispatch/M1-infra-handoff.md; ARCHITECTURE.md drafted.
 - `[x]` **App scaffold** [M] — 2026-06-27. Vite 8 + React 19 + TS 6
   (strict, project refs) + Tailwind v4 (`@tailwindcss/vite`, no config
   file) + PWA (`vite-plugin-pwa`, autoUpdate, generated SW + manifest,

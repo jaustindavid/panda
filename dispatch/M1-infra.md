@@ -211,6 +211,16 @@ the console work. Reuse flog's patterns:
 - **Don't swallow `getRedirectResult` rejections** — `console.error`
   them in prod.
 - **`measurementId` emitted but omitted** from app code (no analytics).
+- **PWA service worker hijacks Firebase auth routes (panda M1, 2026-06-28)**
+  — a Workbox/vite-plugin-pwa SPA navigation fallback serves `index.html`
+  for `/__/auth/handler` + `/__/auth/iframe`, so the OAuth handshake loads
+  the app shell instead of Firebase's real handler and sign-in hangs on
+  "Loading…" with **no errors (all 200s)**. Fix:
+  `workbox.navigateFallbackDenylist: [/^\/__\//]`. Diagnosed from the
+  Network tab (auth handler/iframe served by ServiceWorker, pulling the
+  app's JS/CSS). Any PWA + Firebase Auth on the same domain hits this.
+- **Stale service worker masks the fix** — after redeploy the old SW still
+  controls the page; retest in incognito or unregister the SW.
 - **UI drift is constant** — follow requirements, not dated paths.
 
 ---
@@ -370,12 +380,14 @@ the owner's deploy + live check.
   `isMember()`), `firestore.rules` per §6 + 20 emulator rules tests.
 - [x] Circle allowlist finalized — 4 emails in **both**
   `src/lib/allowlist.ts` and `firestore.rules` `isMember()` (2026-06-28).
-- [ ] **[OWNER]** `firebase login` (CLI present) → `npm run deploy`.
-- [ ] **[OWNER]** §5 live check: visit `<id>.web.app`, sign in with an
-  allowlisted Gmail, confirm you land in (and a non-listed account hits
-  "not on the list").
+- [x] `firebase login` → `npm run deploy` (2026-06-28). Deployed hosting
+  and rules to `panda-bamboo-lane.web.app`.
+- [x] §5 live check ✅ 2026-06-28 — real Google sign-in lands an
+  allowlisted member on the home screen. Required a fix first: the PWA
+  service worker was hijacking Firebase's `/__/auth/*` routes (see §6
+  rake); fixed in commit `749bfa8` (`navigateFallbackDenylist`).
 
-Then close out per §8 (handoff + ARCHITECTURE draft + BACKLOG M1 → Done).
+**M1 COMPLETE 2026-06-28.** See `dispatch/M1-infra-handoff.md`.
 
 ---
 
