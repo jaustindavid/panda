@@ -323,9 +323,21 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
   - API restriction → **Places API (New)** [+ Maps JS API if used].
     Nothing else.
 - [ ] **[GCP]** APIs & Services → Places API (New) → Quotas & System
-  Limits → set **Requests per day** to a conservative cap (~**50/day**
-  to start). This is the hard ceiling — calls 429 at the cap rather than
-  billing.
+  Limits. ⚠️ The New API exposes **per-method** daily quotas (one row
+  per RPC), **not** a single global "Requests per day". Cap the methods
+  panda actually uses to ~**50/day**:
+  - **`SearchNearbyRequest` per day → 50** ⭐ — this is Nearby Search,
+    the one-per-screen-load core call (§8). The one that matters.
+    (default was 75,000.)
+  - **`GetPlaceRequest` per day → 50** — Place Details, single
+    saved-place re-hydration only (§8). (default was 125,000.)
+  - _Optional hardening on the shared card:_ the key is API-restricted to
+    Places (New) but **not method-restricted**, so a leaked key could
+    still hit other RPCs. Set the per-day quotas panda never calls
+    (`SearchTextRequest`, `GetPhotoMediaRequest`) low/0 to shrink the
+    blast radius. (`SearchMediaRequest` / `SearchReviewPostsRequest` show
+    "Unlimited" — can't take a number; skip.)
+  This is the hard ceiling — calls 429 at the cap rather than billing.
 - [ ] **[GCP]** Billing → Budgets & alerts → create a **project-scoped**
   budget alert (email only; the quota — not the budget — is the real
   stop).
