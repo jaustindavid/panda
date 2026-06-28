@@ -79,6 +79,13 @@ fire.
 - `[ ]` **`{placeId, name}` history snapshot** [XS] — gated on the
   Places caching-ToS answer (PRD §11.2 Q3). Resolve before M3/M4 if
   visit history needs offline-readable place names.
+- `[ ]` **Aggressive restaurant-list caching (ToS-gated)** [M] — cache
+  the Nearby Search result + re-poll ~monthly / per quota reset, with a
+  per-place "refresh" button; would gut Maps spend (§8 lever). **Blocked
+  on a Places-caching-ToS fact-finder** — caching Maps *content* (hours,
+  names) beyond the Place ID is the constrained case; legality + max
+  duration unknown. IDs cache indefinitely; our own data is free. Owner
+  FR 2026-06-28. _Design: PRD §11.2 Q3(b); run the fact-finder first._
 - `[ ]` **Holiday-aware hours** [S] — prefer `currentOpeningHours`
   (special-days, ~7-day window) over `regularOpeningHours` in the go-able
   filter. _Deferred from M2 (PRD §11.2 Q2)._

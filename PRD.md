@@ -365,8 +365,19 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    `.../data-fields`, `.../billing-and-pricing/pricing`.
 3. **Caching ToS:** verified we may **not** persist Maps hours beyond the
    Place ID — the override sidesteps this (it's our own data). Still open:
-   may we persist a minimal `{placeId, name}` snapshot for visit-history
-   display? **→ confirm before the M3/M4 brief.**
+   (a) may we persist a minimal `{placeId, name}` snapshot for visit-history
+   display? **→ confirm before the M3/M4 brief.** (b) **Aggressive
+   list-caching (owner, 2026-06-28):** restaurants change slowly, so caching
+   the Nearby Search result (incl. hours) and re-polling ~monthly / per
+   quota reset — with a per-place **"refresh"** button to catch a notable
+   hours/closure change — would gut Maps spend (the §8 lever). **But this is
+   precisely the content caching the ToS constrains**, so its legality and
+   max duration are unknown. Place IDs cache indefinitely; our own data
+   (overrides/notes/visits) is free; the open part is Maps **content**.
+   **Resolution: a fact-finder on the CURRENT Places API caching terms**
+   (IDs-only vs a permitted field-caching window) gates both (a) and (b) —
+   the kit-canonical "verify Maps behavior before designing" move. Don't
+   guess. _Backlog: "Aggressive restaurant-list caching (ToS-gated)."_
 4. **Circle bootstrap — ✅ SETTLED 2026-06-28.** v1 **hardcodes the
    circle's emails directly in `firestore.rules`** (leanest for a tiny
    fixed circle); there is **no** Firestore Membership collection. Adding/
