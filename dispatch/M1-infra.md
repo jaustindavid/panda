@@ -136,15 +136,17 @@ the console work. Reuse flog's patterns:
 - `GoogleAuthProvider` with
   `setCustomParameters({ prompt: 'select_account' })`; `console.error`
   any `getRedirectResult` rejection (flog M2 rakes, §6).
-- **Allowlist gate** — a Firestore allowlist (a doc or small
-  collection) seeded with the circle's emails; security rules require
-  the requester's email ∈ allowlist for any circle data; the client
-  routes non-allowlisted users to a "not on the list" screen. Reuse
-  flog's `../flog/dispatch/M2-auth-allowlist.md`. This is M1's
-  auth+allowlist portion per PRD §10 — fine as its own small code
-  dispatch right after the app scaffold.
-- `firestore.rules` — start from the PRD §6 access table (User,
-  Membership, Note, Visit, PlaceOverride; NoGo is a later chamber).
+- **Allowlist gate** — **v1 hardcodes the circle's emails in
+  `firestore.rules`** (settled 2026-06-28, PRD §11.2 Q4); no Firestore
+  allowlist collection. A rules helper (e.g. `isMember()` checking
+  `request.auth.token.email in [<emails>]`) gates every circle read/
+  write; the client routes non-allowlisted users to a "not on the list"
+  screen (probe-read failure or a mirrored client-side list). This is
+  M1's auth portion per PRD §10 — its own small code dispatch right after
+  the app scaffold.
+- `firestore.rules` — per the PRD §6 access table (User, Note, Visit,
+  PlaceOverride; **no Membership collection in v1** — allowlist is the
+  hardcoded `isMember()` helper above; NoGo is a later chamber).
   Deny-all baseline + per-entity allows; emulator rules tests, one per
   table row (AGENTS.md).
 - `.firebaserc` + `firebase.json` hand-authored; an `npm run deploy`

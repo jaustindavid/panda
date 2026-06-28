@@ -158,9 +158,12 @@ display details from Maps on demand.
 - **User** — `uid`, `displayName`, `email`, `photoURL`. Lifecycle: created
   on first allowlisted sign-in. Read: circle members. Write: self (profile
   only).
-- **Membership / allowlist** — the set of `email`/`uid` permitted into the
-  circle. Seeded by the owner _(mechanism is an open question, §11.2)_.
-  Read: members. Write: owner only.
+- **Membership / allowlist** — **v1: the circle's emails are hardcoded
+  directly in `firestore.rules`** (no Firestore collection); every rule
+  gates on `request.auth.token.email` being in that set. Adding/removing a
+  member = edit the rules + redeploy. Leanest for a tiny fixed circle
+  (settled 2026-06-28, §11.2 Q4). A Firestore Membership _entity_ (read:
+  members; write: owner) is deferred unless invite-link onboarding lands.
 - **Note** — `placeId`, `authorUid`, `text`, `createdAt`, `updatedAt`.
   Multiple per place. Read: members. Write: author (create/update/delete
   own).
@@ -191,7 +194,9 @@ display details from Maps on demand.
 Single circle; all members are peers. Per entity:
 
 - **User:** read = members; write = self.
-- **Membership:** read = members; write = owner.
+- **Membership:** v1 = emails hardcoded in `firestore.rules` (no doc);
+  changing the circle = edit + redeploy rules. (Firestore-entity version
+  with owner-only write is deferred — §11.2 Q4.)
 - **Note:** read = members; create = any member; update/delete = author.
 - **Visit:** read = members; create = any member (for self); delete =
   creator.
@@ -362,8 +367,12 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    Place ID — the override sidesteps this (it's our own data). Still open:
    may we persist a minimal `{placeId, name}` snapshot for visit-history
    display? **→ confirm before the M3/M4 brief.**
-4. **Circle bootstrap:** how is the allowlist seeded and how do new members
-   join — manual allowlist edit _(proposed for v1)_ vs invite link (later)?
+4. **Circle bootstrap — ✅ SETTLED 2026-06-28.** v1 **hardcodes the
+   circle's emails directly in `firestore.rules`** (leanest for a tiny
+   fixed circle); there is **no** Firestore Membership collection. Adding/
+   removing a member = edit the rules + redeploy. Supersedes the
+   Membership-as-data sketch in §5/§6 for v1. Invite-link onboarding (and
+   a Firestore Membership entity) remain a **later chamber**.
 5. **Roulette UX:** plain random pick vs. animated spin; any weighting by
    notes/visits? _(proposed: plain random, no weighting, v1)_
 6. **Offline scope:** what must work without network — app shell only, or
