@@ -197,12 +197,18 @@ display details from Maps on demand.
   filter. panda's own data (a Place-ID flag), unaffected by the Places
   caching ToS.
 - **SavedPlace (planned — later chamber; owner FR 2026-06-28)** — doc id =
-  `placeId`, `addedByUid`, `addedAt`. One per Place. Read: members; write:
-  any member (add/remove). Hard-**includes** the Place in discovery +
-  roulette regardless of proximity (the inverse of NoGo). Stores only the
-  Place ID (ToS); name/hours/location re-hydrate via Place Details on load.
-  Added via name search (Places Text Search). panda's own data (a Place-ID
-  flag), unaffected by the Places caching ToS.
+  `placeId`, `addedByUid`, `addedAt`, plus a **snapshot** `name`, `hours`,
+  `snapshotAt`. One per Place. Read: members; write: any member
+  (add/remove). Hard-**includes** the Place in discovery + roulette
+  regardless of proximity (the inverse of NoGo). Added via name search
+  (Places Text Search → Place ID). The `name`/`hours` snapshot is copied
+  from Maps on favorite — the **accepted bounded step over the caching ToS
+  letter** (§11.2 Q3c): it renders the favorite with no per-load API call,
+  and is **re-polled live on a short interval** (freshness + drift
+  detection; a live name ≠ snapshot name flags a possible ownership change).
+  Place ID is the identity anchor — circle content never follows a successor
+  business (new business ⇒ new ID). Reversible to ID-only if quota allows
+  (§13.3).
 - **Place (not stored)** — referenced by `placeId`; name / hours / genre /
   location / rating hydrated from Maps at display time. _Open question
   (§11.2): whether a minimal `{placeId, name}` snapshot may be persisted for
@@ -425,6 +431,23 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    verbatim §3.2.3 wording came via a mirror (Google's page truncates under
    fetch) — eyeball it directly before any formal reliance; an EEA variant
    may govern EEA users._
+   **(c) Favorites snapshot — owner posture, accepted 2026-06-28 (eyes-open
+   step over the letter, inside the spirit).** Strict ToS would have even a
+   favorite store ID-only + re-hydrate. The owner accepts a **bounded
+   exception**: a place the user **explicitly favorites** stores a
+   `{placeId, name, hours, snapshotAt}` snapshot copied from Maps, so
+   "favorite" is one tap (no retyping). Guardrails that keep it inside the
+   spirit (Google's concern = don't hoard data to avoid calling them / build
+   a rival dataset — neither applies here): **favorites only** (never the
+   discovery list, no bulk preload, no scraping); the snapshot is a
+   **fallback + drift-detection baseline**, not the freshness source —
+   **re-poll live on a short interval** ("open now" is always live); minimal
+   fields, stamped `snapshotAt`. Place ID is the identity anchor: a
+   successor business gets a **new** Place ID, so circle content never
+   follows new ownership; a live name ≠ snapshot name flags drift.
+   **Reversible** — back out to ID-only + live re-hydration if Maps quota
+   proves a non-issue (§13.3). Encoded in AGENTS.md guardrails + §5
+   (SavedPlace). Discovery/history caching is unchanged ((a)/(b) above).
 4. **Circle bootstrap — ✅ SETTLED 2026-06-28.** v1 **hardcodes the
    circle's emails directly in `firestore.rules`** (leanest for a tiny
    fixed circle); there is **no** Firestore Membership collection. Adding/
@@ -523,6 +546,11 @@ commitments in §1.4 would constrain ad-based models anyway.
   panda its own billing account (its own free tier). Cheap to do; the only
   reason to split.
 - Monthly Maps spend exceeds ~$50 → revisit fetch/quota strategy.
+- **Maps quota proves a non-issue** (comfortably under the daily cap with
+  favorites live-re-hydrated) → **back out the favorites snapshot**
+  (§11.2 Q3c) to strictly ToS-clean ID-only + live re-hydration. The
+  snapshot exists to keep a free app free; if calls are cheap, drop it.
+  _Keep half an eye on consumption to know._
 - The "circle" outgrows "small / fixed" (open signups or multiple groups) →
   revisit auth, scale, and this whole posture.
 

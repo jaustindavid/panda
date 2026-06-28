@@ -66,15 +66,18 @@ fire.
   Design: PRD §1.3, §3, §5 (NoGo), §6, §7 (F7)._
 - `[~]` **Add restaurants by name (saved favorites)** [M] — owner FR
   2026-06-28. Search a place **by name** (Places **Text Search** — a new
-  surface, same key/API) → store its **Place ID** in a circle-shared
-  `SavedPlace` set → it joins discovery + roulette **regardless of
-  proximity** (far favorites stay in the wheel). Symmetric twin of the
-  no-go list. Reverses the §1.2 "no favorites" non-goal (owner-confirmed).
-  Store ID only; re-hydrate name/hours via Place Details per load — **mind
-  the `GetPlaceRequest` 50/day cap × N favorites** (consider re-hydrating
-  only on the roulette/favorites view, not every discovery load). Pairs
-  with **M5 roulette**. _Committed. Design: PRD §1.3, §5 (SavedPlace), §6,
-  §7 (F8)._
+  surface, same key/API) → one-tap "favorite" stores `{placeId, name,
+  hours, snapshotAt}` in a circle-shared `SavedPlace` set → it joins
+  discovery + roulette **regardless of proximity** (far favorites stay in
+  the wheel). Symmetric twin of the no-go list; reverses the §1.2 "no
+  favorites" non-goal (owner-confirmed). **Favorites store a re-polled Maps
+  snapshot** — the accepted bounded ToS step-over (AGENTS.md guardrail +
+  PRD §11.2 Q3c): renders with no per-load API call; re-poll live on a
+  short interval (freshness + drift detection). Place ID is the identity
+  anchor (content never follows a successor business). **Watch
+  `GetPlaceRequest` consumption; reversible to ID-only if quota is ample**
+  (§13.3). Pairs with **M5 roulette**. _Committed. Design: PRD §1.3, §5
+  (SavedPlace), §6, §7 (F8), §11.2 Q3c._
 - `[~]` **Travel time vs straight-line distance** [M] — reinterpret the
   when-chip as "leave in…"; `arrival(place) = now + buffer +
   travel(place)`. **Owner FR 2026-06-28 (lives near a river):**

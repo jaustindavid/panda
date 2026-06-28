@@ -51,10 +51,18 @@ Violating any of these is violating v1's primary commitments.
 
 ## Hard guardrails — do not cross without asking
 
-- **No cached Maps place content beyond the Place ID.** Google ToS.
-  Display details re-hydrate from Maps; the circle's own data (notes,
-  visits, overrides, no-go) keys on Place ID. (Open question §11.2 Q3:
-  whether a minimal `{placeId, name}` history snapshot is permitted.)
+- **No cached Maps place content beyond the Place ID — _except favorites_.**
+  Default (discovery, history): display details re-hydrate from Maps live;
+  the circle's own data (notes, visits, overrides, no-go) keys on Place ID.
+  **Deliberate, documented exception (owner decision 2026-06-28):** a place
+  the user **explicitly favorites** may store a `{placeId, name, hours,
+  snapshotAt}` snapshot copied from Maps — a knowing step over the strict
+  ToS letter, kept inside its spirit: **favorites only** (never the
+  discovery list / no bulk preload / no scraping), **re-polled live on a
+  short interval** for freshness (the snapshot is a fallback + drift-
+  detection baseline, not a way to avoid calling Google). Reversible: back
+  out to pure live re-hydration if Maps quota proves a non-issue (PRD
+  §13.3). Full rationale + guardrails: PRD §11.2 Q3 / §5 (SavedPlace).
 - **No Cloud Functions or server code** in v1. Anything not enforceable
   in Firestore security rules is out of scope. (A thin read-only Maps
   proxy is a documented cost tripwire in PRD §8 — not a default.)
