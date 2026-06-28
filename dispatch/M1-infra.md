@@ -368,8 +368,8 @@ the owner's deploy + live check.
   `measurementId` omitted), the auth gate (`AuthProvider` + screens),
   the **hardcoded allowlist** (`src/lib/allowlist.ts` mirrors
   `isMember()`), `firestore.rules` per §6 + 20 emulator rules tests.
-- [ ] **[OWNER]** Add the rest of the circle's emails to **both**
-  `src/lib/allowlist.ts` and `firestore.rules` `isMember()`.
+- [x] Circle allowlist finalized — 4 emails in **both**
+  `src/lib/allowlist.ts` and `firestore.rules` `isMember()` (2026-06-28).
 - [ ] **[OWNER]** `firebase login` (CLI present) → `npm run deploy`.
 - [ ] **[OWNER]** §5 live check: visit `<id>.web.app`, sign in with an
   allowlisted Gmail, confirm you land in (and a non-listed account hits

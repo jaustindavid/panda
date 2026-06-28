@@ -17,9 +17,10 @@ service cloud.firestore {
       return isSignedIn()
         && request.auth.token.email_verified == true
         && request.auth.token.email in [
-          'austindavid@gmail.com'
-          // TODO(owner): add the rest of the circle's Gmail addresses,
-          // comma-separated (and in src/lib/allowlist.ts), then redeploy.
+          'austindavid@gmail.com',
+          'melissapdavid@gmail.com',
+          'drewdavid05@gmail.com',
+          'jacobhdavid07@gmail.com'
         ];
     }
 

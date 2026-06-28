@@ -8,8 +8,9 @@
 // Emails are compared case-insensitively; keep entries lowercase.
 export const ALLOWLIST: readonly string[] = [
   'austindavid@gmail.com',
-  // TODO(owner): add the rest of the circle's Gmail addresses here
-  // (and in firestore.rules), then redeploy.
+  'melissapdavid@gmail.com',
+  'drewdavid05@gmail.com',
+  'jacobhdavid07@gmail.com',
 ]
 
 export function isAllowed(email: string | null | undefined): boolean {
