@@ -11,6 +11,7 @@
     "dist/**",
     "build/**",
     ".firebase/**",
-    "coverage/**"
+    "coverage/**",
+    "dispatch/*-outputs.md"
   ]
 }
