@@ -1,0 +1,16 @@
+// markdownlint-cli2 runtime config — controls which files get linted.
+// Rule config lives in .markdownlint.jsonc (shared with other tools).
+
+{
+  // Always lint these.
+  "globs": ["**/*.md"],
+
+  // Never lint these, even if matched above.
+  "ignores": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".firebase/**",
+    "coverage/**"
+  ]
+}

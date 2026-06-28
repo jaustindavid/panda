@@ -1,0 +1,37 @@
+// Markdownlint configuration for Route7.
+// Enforces the 80-column rule plus a few baseline guardrails.
+// Run: npx markdownlint-cli2 "**/*.md"
+
+{
+  // Hard-wrap prose at 80 columns, but exempt code blocks and tables —
+  // those often can't be split without breaking rendering or readability.
+  "MD013": { "line_length": 80, "code_blocks": false, "tables": false },
+
+  // Allow duplicate sub-section names under different parents
+  // (e.g., multiple "Implementation notes" or "AC" sections across
+  // different top-level sections).
+  "MD024": { "siblings_only": true },
+
+  // Don't ban inline HTML — leaves room for HTML comments and the
+  // occasional <br> or <details> tag if needed.
+  "MD033": false,
+
+  // Don't require fenced code blocks to specify a language. ASCII
+  // diagrams and directory trees legitimately have no language.
+  "MD040": false,
+
+  // Don't require the first line to be H1 strictly. Our docs start with
+  // H1 followed by a copyright italic line and a preamble blockquote,
+  // which satisfies the spirit but can trip the strict check depending
+  // on tooling versions.
+  "MD041": false,
+
+  // Allow both `*text*` and `_text_` for italics. Project convention
+  // is underscore (matches the copyright header), but enforcing it
+  // would generate noise without functional benefit.
+  "MD049": false,
+
+  // Don't enforce table pipe-character alignment in source. Tables
+  // render correctly regardless of whether pipes line up visually.
+  "MD060": false
+}
