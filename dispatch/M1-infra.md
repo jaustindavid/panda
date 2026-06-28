@@ -259,8 +259,10 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
 
 - [ ] **[Firebase]** `console.firebase.google.com` → Add project → **Add
   Firebase to a Google Cloud project** → pick `panda-bamboo-lane`.
-  **Analytics:
-  OFF** (PRD §1.4). Add Firebase.
+  **Analytics: OFF** (PRD §1.4). Add Firebase.
+  ℹ️ Because billing is already linked (7.1), Firebase offers **only**
+  the **Blaze / Pay-as-you-go** plan — no Spark choice to make. Expected
+  (Δ1); free-tier allotments still apply, cost is capped at 7.4.
 - [ ] **[GCP]** APIs & Services → **OAuth Consent Screen** → Get started:
   User type **External**, status **Testing** (not Published), **no
   logo** (logo → brand verification), support email = a real Google
