@@ -263,8 +263,8 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
   ℹ️ Because billing is already linked (7.1), Firebase offers **only**
   the **Blaze / Pay-as-you-go** plan — no Spark choice to make. Expected
   (Δ1); free-tier allotments still apply, cost is capped at 7.4.
-- [ ] **[GCP]** APIs & Services → **OAuth Consent Screen**. Current flow
-  (2026-06-28 — drifted from flog's 2026-05-25 runbook):
+- [x] **[GCP]** APIs & Services → **OAuth Consent Screen**. ✅ Done
+  2026-06-28. Current flow (drifted from flog's 2026-05-25 runbook):
   - **Get started** wizard collects only **User type = External** + the
     **support email** (a real Google mailbox; no forwarding alias).
   - **Branding** sub-screen: **publishing status `Testing`** and **no
@@ -348,8 +348,10 @@ Then run the §5 verification and close out per §8.
 ## 8. When you're done
 
 - Capture every brief-vs-reality deviation (UI drift, new rakes) in the
-  handoff `dispatch/M1-infra-handoff.md` — and fold panda-specific
-  rakes back into this doc (and flog's runbook if broadly reusable).
+  handoff `dispatch/M1-infra-handoff.md` — and fold them **back into this
+  doc**. flog is done and no longer maintained; **this doc is now the
+  living GCP/Firebase setup reference the next project reads** (don't
+  edit flog's runbook).
 - Draft `ARCHITECTURE.md` from what actually landed.
 - Owner reviews + commits. **No agent commits.**
 - Move M1 → Done in `dispatch/BACKLOG.md` with a summary line.
