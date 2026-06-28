@@ -406,6 +406,20 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    into the per-place arrival calc above. (b1) is the smaller, shippable
    first step; both carry the Routes/Distance-Matrix per-place cost (weigh
    vs the §8 quota — batch ≤20, cache per session). _Later chamber._
+10. **Beyond the nearest 20 — expand radius / "search this area" (owner,
+    2026-06-28):** M2 does **one** Nearby Search (≤20, nearest-first, fixed
+    radius) and the genre filter is **client-side over that set** — so a
+    sparse genre (one pizza place in the nearest 20) shows only what was
+    fetched, not "all pizza open nearby." Options, all **user-triggered** to
+    respect §8 (one billed call per explicit action, never auto-fanout):
+    (a) a **"wider"** control → re-search at a larger radius; (b) Maps-style
+    **"search this area"** → re-center on the panned map (depends on the map
+    fast-follow); (c) **genre-scoped search** → tapping an under-covered
+    genre fires a fresh Nearby Search `includedTypes:[that type]`. Note:
+    Places API (New) `searchNearby` has **no page token** (hard cap 20) —
+    more results means a new call (bigger radius / recenter) or switching
+    that query to **Text Search** (paged, supports a type). Keep it explicit
+    + quota-aware (50/day). _Later chamber._
 
 ---
 

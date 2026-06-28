@@ -67,6 +67,15 @@ fire.
   on cards (smaller, no go-able change); (b2) feed travel time into the
   per-place arrival calc. Mind the §8 quota (batch ≤20, cache per
   session). _Design: PRD §11.2 Q9._
+- `[ ]` **Expand search / "search this area"** [M] — get beyond the
+  nearest-20 single Nearby Search. The genre filter is client-side over
+  that set, so a sparse genre shows only what was fetched, not "all pizza
+  open nearby." User-triggered options (keep §8 quota-aware — a new billed
+  call per explicit action, no auto-fanout): a "wider radius" control;
+  Maps-style "search this area" on the panned map (pairs with the map
+  fast-follow); genre-scoped re-search when a tapped genre is sparse.
+  `searchNearby` (New) has no paging → bigger radius / recenter, or switch
+  to Text Search. Owner FR 2026-06-28. _Design: PRD §11.2 Q10._
 - `[ ]` **`{placeId, name}` history snapshot** [XS] — gated on the
   Places caching-ToS answer (PRD §11.2 Q3). Resolve before M3/M4 if
   visit history needs offline-readable place names.
