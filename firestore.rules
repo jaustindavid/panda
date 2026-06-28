@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// panda Firestore security rules. Mirrors the PRD §6 access table 1:1.
+// v1 circle membership is HARDCODED here (PRD §11.2 Q4) — there is no
+// Membership collection. Adding/removing a member = edit isMember() below
+// AND src/lib/allowlist.ts, then redeploy.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // The circle allowlist. KEEP IN SYNC with src/lib/allowlist.ts.
+    // email_verified guards against unverified-email impersonation.
+    function isMember() {
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in [
+          'austindavid@gmail.com'
+          // TODO(owner): add the rest of the circle's Gmail addresses,
+          // comma-separated (and in src/lib/allowlist.ts), then redeploy.
+        ];
+    }
+
+    // User — read: members; write: self (profile only).
+    match /users/{uid} {
+      allow read: if isMember();
+      allow write: if isMember() && request.auth.uid == uid;
+    }
+
+    // Note — read: members; create: any member (author = self);
+    // update/delete: author.
+    match /notes/{noteId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && request.resource.data.authorUid == request.auth.uid;
+      allow update, delete: if isMember()
+        && resource.data.authorUid == request.auth.uid;
+    }
+
+    // Visit — read: members; create: any member (for self); delete: creator.
+    // (Edits are rare and disallowed in v1.)
+    match /visits/{visitId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && request.resource.data.byUid == request.auth.uid;
+      allow delete: if isMember() && resource.data.byUid == request.auth.uid;
+    }
+
+    // PlaceOverride — read: members; create/update/delete: ANY member
+    // (collective circle knowledge, not author-locked). Doc id = placeId.
+    match /overrides/{placeId} {
+      allow read: if isMember();
+      allow write: if isMember();
+    }
+
+    // Everything else (incl. NoGo, a later chamber) is denied. Unmatched
+    // paths default-deny; this is the explicit baseline.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
