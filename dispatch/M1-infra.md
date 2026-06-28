@@ -257,9 +257,9 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
 
 ### 7.2 · Firebase + Auth — consent, sign-in, the THREE domain lists
 
-- [ ] **[Firebase]** `console.firebase.google.com` → Add project → **Add
+- [x] **[Firebase]** `console.firebase.google.com` → Add project → **Add
   Firebase to a Google Cloud project** → pick `panda-bamboo-lane`.
-  **Analytics: OFF** (PRD §1.4). Add Firebase.
+  **Analytics: OFF** (PRD §1.4). Add Firebase. ✅ Done 2026-06-28.
   ℹ️ Because billing is already linked (7.1), Firebase offers **only**
   the **Blaze / Pay-as-you-go** plan — no Spark choice to make. Expected
   (Δ1); free-tier allotments still apply, cost is capped at 7.4.
@@ -272,18 +272,18 @@ Project ID **`panda-bamboo-lane`** (so `<id>.web.app` =
     logo upload would trigger brand verification; that's why we leave it.)
   - **Audience** sub-screen: add every circle Gmail as a **test user**
     (≤100). Leave scopes default.
-- [ ] **[Firebase]** Security → Authentication → Get started → Sign-in
+- [x] **[Firebase]** Security → Authentication → Get started → Sign-in
   method → **Google → Enable** (support email matches above). This
-  auto-creates the OAuth Web client used just below.
-- [ ] ⚠️ **Three authorized-domains lists — all required; a missing one
-  breaks sign-in silently:**
-  - [ ] **[Firebase]** Authentication → Settings → **Authorized
+  auto-creates the OAuth Web client used just below. ✅ Done 2026-06-28.
+- [x] ⚠️ **Three authorized-domains lists — all required; a missing one
+  breaks sign-in silently:** ✅ all three done 2026-06-28.
+  - [x] **[Firebase]** Authentication → Settings → **Authorized
     domains**: `localhost`, `<id>.firebaseapp.com`, `<id>.web.app`
-    (usually pre-filled — verify all three).
-  - [ ] **[GCP]** OAuth Consent → **Branding** → **Authorized domains**:
-    `<id>.web.app`, `<id>.firebaseapp.com`
+    (pre-filled correctly — verified all three).
+  - [x] **[GCP]** OAuth Consent → **Branding** → **Authorized domains**:
+    `<id>.web.app`, `<id>.firebaseapp.com` (added the two FQDNs)
     (⚠️ apex domains + `localhost` are rejected — FQDNs only).
-  - [ ] **[GCP]** OAuth Consent → **Clients** → open the auto-created Web
+  - [x] **[GCP]** OAuth Consent → **Clients** → open the auto-created Web
     client:
     - JS origins: `http://localhost:5173`, `https://<id>.web.app`,
       `https://<id>.firebaseapp.com`
