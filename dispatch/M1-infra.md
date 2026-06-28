@@ -32,7 +32,7 @@ inlined in §6 so you won't be blind if you don't open it — but open it.
 
 This dispatch goes to the **route7 nautilus for review before
 execution** (kit README "Cross-nautilus consultation"). Document every
-brief-vs-reality deviation as you go (§7) — M1's handoff "Deviations"
+brief-vs-reality deviation as you go (§8) — M1's handoff "Deviations"
 section earns its keep more than any other dispatch's.
 
 ---
@@ -207,7 +207,123 @@ the console work. Reuse flog's patterns:
 
 ---
 
-## 7. When you're done
+## 7. Step-by-step execution checklist (where to go, what to do)
+
+The ordered end-to-end path. The work hops between **two** consoles — the
+**GCP Cloud Console** (`console.cloud.google.com`) and the **Firebase
+Console** (`console.firebase.google.com`) — so each step is tagged with
+which one. Paths come from flog's runbook (dated 2026-05-25, §0) plus
+panda's Maps/billing deltas (§1). **UIs drift — if a label has moved,
+trust the requirement, not the breadcrumb.** Tick each box as you go.
+
+### 7.0 · Pre-flight
+
+- [ ] `gcloud` + `firebase` CLIs installed, logged into the **right**
+  Google account (`firebase login`); Node ≥ 20.
+- [ ] panda repo open locally; create a gitignored
+  `dispatch/M1-g-outputs.md` to paste captured values into.
+- [ ] §4 decisions in hand: Project ID (suggest `panda-ad`), Firestore
+  region (`nam5`), the circle's Gmails, confirm the **shared** billing
+  account.
+
+### 7.1 · GCP — project + shared billing  (Δ1)
+
+- [ ] **[GCP]** `console.cloud.google.com/projectcreate`. Name = `panda`
+  (display only). **Click Edit on the Project ID and type it manually**
+  (e.g. `panda-ad`); it must read "✓ Available". Org: none (personal).
+  Create.
+  ⚠️ Don't skip the manual edit — GCP appends a permanent 6-digit
+  suffix and IDs are immutable.
+- [ ] **[GCP]** Billing → **Link a billing account** → pick route7's
+  **existing (shared)** account. This moves Firebase to **Blaze**
+  (expected; Maps requires it — free-tier allotments still apply).
+  ⚠️ This inverts flog's "never attach billing" rake: here you DO
+  attach it (to the shared account) and cap spend via quotas (7.4).
+
+### 7.2 · Firebase + Auth — consent, sign-in, the THREE domain lists
+
+- [ ] **[Firebase]** `console.firebase.google.com` → Add project → **Add
+  Firebase to a Google Cloud project** → pick `panda-ad`. **Analytics:
+  OFF** (PRD §1.4). Add Firebase.
+- [ ] **[GCP]** APIs & Services → **OAuth Consent Screen** → Get started:
+  User type **External**, status **Testing** (not Published), **no
+  logo** (logo → brand verification), support email = a real Google
+  mailbox (no forwarding alias). Under **Audience**, add every circle
+  Gmail as a **test user** (≤100). Leave scopes default.
+- [ ] **[Firebase]** Security → Authentication → Get started → Sign-in
+  method → **Google → Enable** (support email matches above). This
+  auto-creates the OAuth Web client used just below.
+- [ ] ⚠️ **Three authorized-domains lists — all required; a missing one
+  breaks sign-in silently:**
+  - [ ] **[Firebase]** Authentication → Settings → **Authorized
+    domains**: `localhost`, `<id>.firebaseapp.com`, `<id>.web.app`
+    (usually pre-filled — verify all three).
+  - [ ] **[GCP]** OAuth Consent → **Branding** → **Authorized domains**:
+    `<id>.web.app`, `<id>.firebaseapp.com`
+    (⚠️ apex domains + `localhost` are rejected — FQDNs only).
+  - [ ] **[GCP]** OAuth Consent → **Clients** → open the auto-created Web
+    client:
+    - JS origins: `http://localhost:5173`, `https://<id>.web.app`,
+      `https://<id>.firebaseapp.com`
+    - Redirect URIs — ⚠️ **`/__/auth/handler` suffix on every one**:
+      `http://localhost:5173/__/auth/handler`,
+      `https://<id>.web.app/__/auth/handler`,
+      `https://<id>.firebaseapp.com/__/auth/handler`
+
+### 7.3 · Firebase — Firestore, Hosting, Web app
+
+- [ ] **[Firebase]** Databases → Firestore → Create database →
+  **production mode** (not test mode) → location `nam5` → leave the
+  deny-all default rules.
+- [ ] **[Firebase]** Hosting & Serverless → Hosting → Get started → click
+  through. ⚠️ **Do NOT run the suggested CLI** (`firebase init/deploy`)
+  — config is hand-authored later. Continue to console; verify
+  `<id>.web.app` + `<id>.firebaseapp.com` are listed.
+- [ ] **[Firebase]** gear → Project settings → General → Your apps → Web
+  (`</>`). Nickname `panda`; **do NOT** tick "also set up Firebase
+  Hosting" (re-enters the CLI flow). Register, then copy the whole
+  `firebaseConfig` into `dispatch/M1-g-outputs.md`.
+- [ ] **[GCP]** Also copy the **OAuth Web Client ID** (OAuth Consent →
+  Clients) into the same file.
+
+### 7.4 · GCP — Maps API, restricted key, cost controls  (Δ2, Δ3)
+
+- [ ] **[GCP]** APIs & Services → Library → **"Places API (New)"** →
+  Enable. (Also enable **Maps JavaScript API** only if the map view
+  uses it.)
+- [ ] **[GCP]** APIs & Services → Credentials → Create credentials → API
+  key, then **Restrict key** (mandatory on a shared card):
+  - Application restriction → **HTTP referrers**: `http://localhost:5173/*`,
+    `https://<id>.web.app/*`, `https://<id>.firebaseapp.com/*`
+  - API restriction → **Places API (New)** [+ Maps JS API if used].
+    Nothing else.
+- [ ] **[GCP]** APIs & Services → Places API (New) → Quotas & System
+  Limits → set **Requests per day** to a conservative cap (~**50/day**
+  to start). This is the hard ceiling — calls 429 at the cap rather than
+  billing.
+- [ ] **[GCP]** Billing → Budgets & alerts → create a **project-scoped**
+  budget alert (email only; the quota — not the budget — is the real
+  stop).
+
+### 7.5 · Code-side wiring (rides with the app — see §3, not pure ops)
+
+- [ ] Create `.env.local` from the captured config. ⚠️ Set
+  `VITE_FIREBASE_AUTH_DOMAIN=<id>.web.app` (**not** `firebaseapp.com` —
+  silent Chrome breakage); add `VITE_GOOGLE_MAPS_API_KEY=…`; **omit**
+  `measurementId`.
+- [ ] Hand-author `.firebaserc` + `firebase.json`; add an `npm run
+  deploy` script (build → `firebase use` → `firebase deploy --only
+  hosting`).
+- [ ] Firebase init module, the Google provider
+  (`prompt: 'select_account'`), the allowlist gate, and
+  `firestore.rules` + emulator tests land here (§3) — fine as a small
+  code dispatch right after.
+
+Then run the §5 verification and close out per §8.
+
+---
+
+## 8. When you're done
 
 - Capture every brief-vs-reality deviation (UI drift, new rakes) in the
   handoff `dispatch/M1-infra-handoff.md` — and fold panda-specific
