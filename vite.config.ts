@@ -17,6 +17,15 @@ export default defineConfig({
       // `npm run dev`, not only after a build.
       devOptions: { enabled: true },
       includeAssets: ['favicon.svg'],
+      workbox: {
+        // Firebase Auth serves its sign-in handler + iframe from /__/auth/*
+        // on the hosting domain. Without this, the SPA navigation fallback
+        // serves index.html for those routes, the OAuth handshake never
+        // completes, and the app hangs on "Loading…". Exclude all Firebase
+        // reserved /__/ paths from the navigation fallback so the real
+        // handler loads from the network.
+        navigateFallbackDenylist: [/^\/__\//],
+      },
       manifest: {
         name: 'panda',
         short_name: 'panda',
