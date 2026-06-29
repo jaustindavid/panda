@@ -45,13 +45,14 @@ fire.
   *searches*) + tight Place Details field masks — folded into the
   re-hydration item above. _Caching is not a cost lever; §8 quota
   discipline is. PRD §11.2 Q3._
-- `[ ]` **Tighten Places method quotas** [XS] — **`SearchTextRequest` is
-  now USED** (add-by-name favorites) and sits at the default high quota →
-  give it a ~50/day cap too (do **not** zero it). `GetPhotoMediaRequest`
-  is still unused → cap/zero. The key is API- but **not** method-
-  restricted, so this shrinks a leaked-key blast radius.
-  `SearchNearbyRequest` + `GetPlaceRequest` already at 50/day. _Owner
-  console; from M1 §7.4._
+- `[ ]` **Tighten API daily quotas (Places + Routes)** [XS] — **Routes API
+  `ComputeRouteMatrix`** is now USED (travel time, enabled 2026-06-29) at the
+  default high quota → give it a daily cap (mirror Places). **`SearchTextRequest`**
+  is also USED (add-by-name + genre-scope) and sits at the default → cap it
+  ~50/day too (do **not** zero it). `GetPhotoMediaRequest` is still unused →
+  cap/zero. The key is API- but **not** method-restricted, so caps shrink a
+  leaked-key blast radius. `SearchNearbyRequest` + `GetPlaceRequest` already at
+  50/day; $5 budget alert is the backstop. _Owner console; from M1 §7.4._
 - `[ ]` **Map: AdvancedMarker + Map ID** [XS] — the map uses the classic
   `google.maps.Marker` (no Map ID needed, but logs a deprecation warning).
   Upgrade to `AdvancedMarker` once a vector **Map ID** is created in the
