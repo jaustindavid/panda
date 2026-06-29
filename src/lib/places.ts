@@ -122,6 +122,36 @@ export async function getPlaceName(placeId: string, apiKey: string): Promise<str
   }
 }
 
+const DETAILS_FIELD_MASK = [
+  'id',
+  'displayName',
+  'location',
+  'primaryType',
+  'types',
+  'utcOffsetMinutes',
+  'regularOpeningHours',
+  'regularSecondaryOpeningHours',
+].join(',')
+
+/**
+ * Full Place Details for one place (used when a detail route is opened
+ * cold — deep link / refresh — with no place in the discovery results).
+ * Enterprise SKU (hours); on-demand only, not in any list path.
+ */
+export async function getPlaceDetails(
+  placeId: string,
+  apiKey: string,
+): Promise<Place> {
+  const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+    headers: { 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': DETAILS_FIELD_MASK },
+  })
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '')
+    throw new Error(`Place Details failed (${res.status}): ${detail}`)
+  }
+  return mapPlace((await res.json()) as RawPlace)
+}
+
 function mapPlace(raw: RawPlace): Place {
   const kitchen = raw.regularSecondaryOpeningHours?.find(
     (h) => h.secondaryHoursType === 'KITCHEN',
