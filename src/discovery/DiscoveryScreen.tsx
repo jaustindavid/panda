@@ -21,7 +21,7 @@ export function DiscoveryScreen() {
   const d = useDiscoveryData()
   const navigate = useNavigate()
 
-  const shown = d.genre ? d.ranked.filter((r) => r.genre === d.genre) : d.ranked
+  const shown = d.shown
   const arrivalLabel = formatClock(d.nowMs + d.offset * 60_000)
 
   if (d.geoStatus === 'prompting') {
@@ -73,6 +73,16 @@ export function DiscoveryScreen() {
           </ul>
         )}
       </div>
+
+      {!d.loading && !d.fetchError && shown.length > 0 && (
+        <button
+          type="button"
+          onClick={() => navigate('/roulette')}
+          className="shrink-0 rounded-full bg-slate-100 py-3 text-center font-medium text-slate-900"
+        >
+          🎲 Spin
+        </button>
+      )}
     </div>
   )
 }

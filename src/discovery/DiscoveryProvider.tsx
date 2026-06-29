@@ -74,6 +74,10 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   }, [places, geo.coords, nowMs, offset, overrides])
 
   const genres = useMemo(() => availableGenres(ranked), [ranked])
+  const shown = useMemo(
+    () => (genre ? ranked.filter((r) => r.genre === genre) : ranked),
+    [ranked, genre],
+  )
 
   const value: DiscoveryData = {
     geoStatus: geo.status,
@@ -83,6 +87,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     loading: geo.status === 'granted' && places === null && fetchError === null,
     fetchError,
     ranked,
+    shown,
     genres,
     annotations,
     overrides,

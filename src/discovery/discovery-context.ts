@@ -15,6 +15,8 @@ export interface DiscoveryData {
   loading: boolean
   fetchError: string | null
   ranked: DiscoveryPlace[]
+  /** ranked, after the active genre filter — what the list + roulette use. */
+  shown: DiscoveryPlace[]
   genres: string[]
   annotations: Record<string, PlaceAnnotation>
   overrides: Record<string, number>

@@ -8,6 +8,7 @@ import { DiscoveryProvider } from './discovery/DiscoveryProvider.tsx'
 import { DiscoveryScreen } from './discovery/DiscoveryScreen.tsx'
 import { PlaceDetailRoute } from './place/PlaceDetailRoute.tsx'
 import { VisitsScreen } from './visits/VisitsScreen.tsx'
+import { RouletteScreen } from './roulette/RouletteScreen.tsx'
 
 function navClass({ isActive }: { isActive: boolean }) {
   return isActive ? 'text-slate-100' : 'text-slate-500'
@@ -41,6 +42,7 @@ function SignedInApp() {
         <Routes>
           <Route path="/" element={<DiscoveryScreen />} />
           <Route path="/place/:placeId" element={<PlaceDetailRoute />} />
+          <Route path="/roulette" element={<RouletteScreen />} />
           <Route path="/visits" element={<VisitsScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
