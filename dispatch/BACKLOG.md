@@ -38,6 +38,17 @@ clear; nothing in flight. Owner picks the next item from Later.
 Committed and speculative chambers, post-core. Move to Soon as triggers
 fire.
 
+- `[ ]` **"Search this area" exempt from the distance cap** [S] — owner FR
+  2026-06-29. The 100 km cap (§7 F1) is measured from the user's **GPS**, so
+  panning "search this area" >100 km away returns empty — the explicitly
+  searched far hits get dropped. They should NOT be capped. **Not a one-liner:**
+  the travel-time gate (§11.2 Q9) is ALSO GPS-relative (`arrival = now + chip +
+  drive-from-GPS`), so a far hit is excluded as not-go-able even once it's
+  exempt from the distance cap. Real fix = **area-relative evaluation when
+  `searchOverride` is set**: measure distance AND travel from the **search
+  center**, not GPS ("show what's open in this area" / browse-mode), while the
+  GPS-relative cap + travel still apply to the default search and to favorites.
+  _From the distance-cap ship, §7 F1._
 - `[~]` **Aggressive restaurant-list caching — NOT VIABLE** [killed] —
   fact-finder (2026-06-28) confirmed Maps ToS §3.2.3 forbids caching
   content (hours/name/types). Monthly-poll-and-cache is out. The compliant
