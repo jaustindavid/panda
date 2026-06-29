@@ -8,13 +8,14 @@ const OPTIONS: ReadonlyArray<{ label: string; value: number }> = [
 interface WhenChipsProps {
   value: number
   onChange: (minutes: number) => void
-  /** Resolved arrival clock for the active offset, e.g. "7:25". */
-  arrivalLabel: string
+  /** Resolved departure clock for the active offset, e.g. "7:25". */
+  departureLabel: string
 }
 
-/** The "when" control (PRD §9): chip row, not a slider. Default +15, a
- *  travel-time proxy. Tapping re-filters client-side — no new Maps call. */
-export function WhenChips({ value, onChange, arrivalLabel }: WhenChipsProps) {
+/** The "when" control (PRD §9): chip row, not a slider. The offset is now
+ *  "leave in…" (departure delay); per-place drive time is added downstream so
+ *  arrival = leave + drive (PRD §11.2 Q9). Tapping re-filters client-side. */
+export function WhenChips({ value, onChange, departureLabel }: WhenChipsProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex gap-2" role="group" aria-label="When are we going?">
@@ -38,7 +39,7 @@ export function WhenChips({ value, onChange, arrivalLabel }: WhenChipsProps) {
         })}
       </div>
       <p className="text-center text-xs text-slate-500">
-        Arriving around {arrivalLabel}
+        Leaving around {departureLabel}
       </p>
     </div>
   )

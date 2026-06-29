@@ -511,7 +511,13 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    the owner's words) without changing go-ability; (b2) _feed_ travel time
    into the per-place arrival calc above. (b1) is the smaller, shippable
    first step; both carry the Routes/Distance-Matrix per-place cost (weigh
-   vs the §8 quota — batch ≤20, cache per session). _Later chamber._
+   vs the §8 quota — batch ≤20, cache per session). **SHIPPED 2026-06-29**
+   (owner chose **b1+b2**, **Essentials** tier): Compute Route Matrix (DRIVE,
+   TRAFFIC_UNAWARE — no live traffic), one call per ≤25-place batch, cached
+   per session by placeId, from the user's GPS; chip relabelled "leave in…",
+   cards show "~N min", filter uses per-place arrival. Cost ~free (Compute
+   Route Matrix Essentials $5/1k elements, **10k free/mo**). Degrades to
+   chip-only until the Routes API is enabled. `src/lib/travel.ts`.
 10. **Beyond the nearest 20 — expand radius / "search this area" (owner,
     2026-06-28):** M2 does **one** Nearby Search (≤20, nearest-first, fixed
     radius) and the genre filter is **client-side over that set** — so a

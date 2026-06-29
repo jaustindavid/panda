@@ -68,7 +68,7 @@ export function DiscoveryScreen() {
   const [view, setView] = useState<'list' | 'map'>('list')
 
   const shown = d.shown
-  const arrivalLabel = formatClock(d.nowMs + d.offset * 60_000)
+  const departureLabel = formatClock(d.nowMs + d.offset * 60_000)
 
   if (d.geoStatus === 'prompting') {
     return <Centered>Finding where you are…</Centered>
@@ -92,7 +92,7 @@ export function DiscoveryScreen() {
   return (
     <div className="flex h-full flex-col gap-3">
       <h1 className="sr-only">Find a place to eat</h1>
-      <WhenChips value={d.offset} onChange={d.setOffset} arrivalLabel={arrivalLabel} />
+      <WhenChips value={d.offset} onChange={d.setOffset} departureLabel={departureLabel} />
       <GenreFilter genres={d.genres} selected={d.genre} onSelect={d.setGenre} />
       <div className="flex items-center gap-3 text-sm">
         {d.favoriteIds.size > 0 && (

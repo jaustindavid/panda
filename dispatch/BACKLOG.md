@@ -38,16 +38,6 @@ clear; nothing in flight. Owner picks the next item from Later.
 Committed and speculative chambers, post-core. Move to Soon as triggers
 fire.
 
-- `[~]` **Travel time vs straight-line distance** [M] — reinterpret the
-  when-chip as "leave in…"; `arrival(place) = now + buffer +
-  travel(place)`. **Owner FR 2026-06-28 (lives near a river):**
-  straight-line distance is *misleading* across barriers — 1.8 km
-  crow-flies can be 20 min via a bridge — which **defeats** the lean
-  distance÷speed estimate; real routing (Routes / Distance Matrix, extra
-  SKU) is what delivers it. Split: (b1) just **show** "1.8 km · ~20 min"
-  on cards (smaller, no go-able change); (b2) feed travel time into the
-  per-place arrival calc. Mind the §8 quota (batch ≤20, cache per
-  session). _Design: PRD §11.2 Q9._
 - `[~]` **Aggressive restaurant-list caching — NOT VIABLE** [killed] —
   fact-finder (2026-06-28) confirmed Maps ToS §3.2.3 forbids caching
   content (hours/name/types). Monthly-poll-and-cache is out. The compliant
@@ -92,6 +82,20 @@ fire.
 
 ## Done
 
+- `[x]` **Travel time vs straight-line distance** [M] — 2026-06-29 (owner
+  picked; chose **b1+b2**, **Essentials** tier). Drive time from the user via
+  Routes API **Compute Route Matrix** (`src/lib/travel.ts`, DRIVE +
+  TRAFFIC_UNAWARE = Essentials, no live traffic). **(b1)** cards show
+  "genre · 1.8 km · ~20 min"; **(b2)** the chip is now "leave in…" and
+  `arrival(place) = now + chip + drive(place)`, so a 20-min-via-bridge place
+  is judged correctly. One matrix call per batch (≤25 dests), cached per
+  session by placeId, computed from the user's GPS (not the search center).
+  **Graceful degrade:** until Routes is enabled the call fails quietly →
+  filter falls back to chip-only, cards omit "~min" (no regression). Cost:
+  ~free (Compute Route Matrix Essentials $5/1k elements, **10k free/mo**;
+  ~660 elements/mo expected). 7 unit tests (parser + per-place arrival).
+  **⚠️ Owner console step:** enable the **Routes API** + allow it on the Maps
+  key + set a daily quota cap (mirror Places). _PRD §11.2 Q9._
 - `[x]` **Search radius + genre-scope re-search** [S] — 2026-06-29. The
   expand-search residue after "search this area". **(a) Search wider:** the
   Nearby radius is now state (tiers 5 → 15 → 50 km, the New API max); a

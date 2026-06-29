@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useGeolocation } from '../hooks/useGeolocation.ts'
 import { searchNearbyRestaurants, searchTextRestaurants } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
+import { computeDriveSeconds } from '../lib/travel.ts'
 import type { LatLng } from '../lib/distance.ts'
 import { availableGenres, rankDiscovery } from '../lib/discovery.ts'
 import { buildAnnotations } from '../lib/annotations.ts'
@@ -46,6 +47,10 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const [extraPlaces, setExtraPlaces] = useState<Place[]>([])
   const [expanding, setExpanding] = useState(false)
   const [expandError, setExpandError] = useState<string | null>(null)
+  // placeId → drive seconds from the user (Routes matrix, §11.2 Q9). null =
+  // routed, no path; absent = not yet routed. Best-effort: stays empty (filter
+  // falls back to chip-only) until the Routes API is enabled.
+  const [driveSecondsById, setDriveSecondsById] = useState<Record<string, number | null>>({})
 
   // One Nearby Search per (search center, radius) — a new billed call per
   // explicit recenter / widen (PRD §8 / §11.2 Q10).
@@ -95,6 +100,39 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     }
   }, [circleRefresh])
 
+  // Drive times for the candidate places — one Compute Route Matrix call per
+  // batch of up to 25 not-yet-routed places, from the user's GPS. Cached per
+  // session by placeId. Best-effort: on error (e.g. Routes API not enabled) it
+  // stays empty and the go-able filter falls back to chip-only arrival; the
+  // next search retries (PRD §8 / §11.2 Q9).
+  useEffect(() => {
+    const origin = geo.coords
+    if (!origin) return
+    const seen = new Set<string>()
+    const missing: { id: string; location: LatLng }[] = []
+    for (const p of [...favoritePlaces, ...extraPlaces, ...(places ?? [])]) {
+      if (driveSecondsById[p.id] !== undefined || seen.has(p.id)) continue
+      seen.add(p.id)
+      missing.push({ id: p.id, location: p.location })
+      if (missing.length >= 25) break
+    }
+    if (missing.length === 0) return
+    let cancelled = false
+    computeDriveSeconds(origin, missing, MAPS_KEY)
+      .then((secs) => {
+        if (cancelled) return
+        setDriveSecondsById((prev) => {
+          const next = { ...prev }
+          for (const m of missing) next[m.id] = secs[m.id] ?? null
+          return next
+        })
+      })
+      .catch(() => undefined) // degrade silently; the next search retries
+    return () => {
+      cancelled = true
+    }
+  }, [places, favoritePlaces, extraPlaces, geo.coords, driveSecondsById])
+
   const ranked = useMemo(() => {
     if (!geo.coords) return []
     // Merge the candidate set: saved favorites (so far favorites still
@@ -110,9 +148,20 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       nowMs,
       arrivalOffsetMin: offset,
       overrides,
+      travelSecondsById: driveSecondsById,
     })
     return r.filter((d) => !nogoIds.has(d.place.id))
-  }, [places, favoritePlaces, extraPlaces, nogoIds, geo.coords, nowMs, offset, overrides])
+  }, [
+    places,
+    favoritePlaces,
+    extraPlaces,
+    nogoIds,
+    geo.coords,
+    nowMs,
+    offset,
+    overrides,
+    driveSecondsById,
+  ])
 
   const favoriteIds = useMemo(
     () => new Set(favoritePlaces.map((p) => p.id)),

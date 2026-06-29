@@ -8,6 +8,16 @@ export function formatClock(epochMs: number): string {
   return `${h}:${m}`
 }
 
+/** Approximate drive time for a card: "~5 min" / "~45 min" / "~1 h 10 min".
+ *  Rounds to whole minutes (min "~1 min"); the "~" reflects no live traffic. */
+export function formatDriveTime(seconds: number): string {
+  const min = Math.max(1, Math.round(seconds / 60))
+  if (min < 60) return `~${min} min`
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  return m === 0 ? `~${h} h` : `~${h} h ${m} min`
+}
+
 /** Compact relative time for note timestamps ("just now", "5m", "3h", "2d"),
  *  falling back to M/D past a week. `nowMs` is passed in (pure). */
 export function formatRelative(epochMs: number, nowMs: number): string {

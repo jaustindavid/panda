@@ -1,7 +1,7 @@
 import { formatDistance } from '../lib/distance.ts'
 import type { DiscoveryPlace } from '../lib/discovery.ts'
 import type { PlaceAnnotation } from '../lib/annotations.ts'
-import { formatRelative } from '../lib/time.ts'
+import { formatDriveTime, formatRelative } from '../lib/time.ts'
 
 interface PlaceCardProps {
   item: DiscoveryPlace
@@ -43,6 +43,7 @@ export function PlaceCard({
           </span>
           <span className="block truncate text-sm text-slate-400">
             {item.genre} · {formatDistance(item.distanceMeters)}
+            {item.travelSeconds != null && ` · ${formatDriveTime(item.travelSeconds)}`}
           </span>
           {marks.length > 0 && (
             <span className="mt-0.5 block truncate text-xs text-slate-500">
