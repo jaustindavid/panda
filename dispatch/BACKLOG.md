@@ -28,14 +28,6 @@ the order.
   restriction (owner console), and adds the dynamic-map billing SKU.
   Reuses the same fetched result set (no extra Nearby Search). Pairs with
   the "search this area" item. _Design: PRD §7 (F1), §9._
-- `[ ]` **App icon — boba panda** [S] — replace the 🐼 emoji (AppShell
-  header) and the placeholder SVG icons (`public/icon*.svg`, manifest,
-  apple-touch) with the owner's artwork: a cartoon panda holding boba +
-  eating fried chicken on a blue rounded square (supplied 2026-06-28).
-  Generate the PNG set (192/512 + maskable safe-zone + apple-touch 180),
-  wire into `vite.config.ts` manifest + `index.html`. ⚠️ Owner to add the
-  source PNG to the repo (suggest `public/icon-source.png`) at dispatch
-  time. Note: art is blue; decide whether to align `theme_color`.
 
 ---
 
@@ -127,6 +119,12 @@ fire.
 
 ## Done
 
+- `[x]` **App icon — boba panda** [S] — 2026-06-29 (commit bc291f5).
+  Owner's art (`assets/icon-source.png`, 2048²) → PWA icon set via
+  sips/ImageMagick (no dep): icon-192/512, icon-maskable (512, white
+  corners flood-filled to bg blue for clean masks), apple-touch (180),
+  favicon-48. Wired into manifest + index.html; header emoji → icon;
+  placeholder SVGs retired. theme_color kept dark slate. Live (icons 200).
 - `[x]` **M5 — Roulette** [S] — 2026-06-28, **owner-verified** (live spin
   confirmed on device). `/roulette` route (swipe-dismissable);
   🎲 Spin from discovery; plain uniform random over the **go-able** +
