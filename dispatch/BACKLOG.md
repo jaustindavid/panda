@@ -83,6 +83,12 @@ fire.
   restricted, so this shrinks a leaked-key blast radius.
   `SearchNearbyRequest` + `GetPlaceRequest` already at 50/day. _Owner
   console; from M1 §7.4._
+- `[ ]` **Favorites snapshot refresh / drift-detection** [S] — favorites
+  store the hours snapshot from save-time; if a place changes hours it goes
+  stale until re-saved. Re-poll a favorite live on a short interval (or on
+  open) to refresh the snapshot, and flag "this place may have changed" when
+  the live name ≠ snapshot name. The posture is already written (§11.2 Q3c);
+  just not built. _From the favorites chamber, 2026-06-29._
 - `[ ]` **JS bundle size / code-splitting** [XS] — the Firebase SDK pushes
   the bundle to ~207 kB gzip (over Vite's 500 kB raw warning). Lazy-load
   Firestore / split chunks for faster first paint on cellular (PRD §9).
