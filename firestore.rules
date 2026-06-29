@@ -71,6 +71,15 @@ service cloud.firestore {
       allow write: if isMember();
     }
 
+    // Feedback — app feedback for later review. read: members (circle-wide,
+    // owner's choice); create: any member (author = self); immutable, so no
+    // update/delete.
+    match /feedback/{feedbackId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && request.resource.data.authorUid == request.auth.uid;
+    }
+
     // Everything else is denied. Unmatched paths default-deny; this is the
     // explicit baseline.
     match /{document=**} {

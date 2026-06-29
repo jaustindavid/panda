@@ -208,6 +208,35 @@ describe('savedPlaces — read/write: any member', () => {
   })
 })
 
+describe('feedback — read: members; create: self; immutable', () => {
+  const fb = { authorUid: MEMBER_UID, authorName: 'Austin', text: 'love it' }
+
+  it('allows a member to submit feedback authored by self', async () => {
+    await assertSucceeds(setDoc(doc(member(), 'feedback/f1'), fb))
+  })
+
+  it('denies feedback attributed to someone else', async () => {
+    await assertFails(
+      setDoc(doc(member(), 'feedback/f1'), { ...fb, authorUid: OTHER_UID }),
+    )
+  })
+
+  it('denies a non-member submitting feedback', async () => {
+    await assertFails(setDoc(doc(stranger(), 'feedback/f1'), fb))
+  })
+
+  it('allows a member to read feedback', async () => {
+    await seed('feedback/f1', fb)
+    await assertSucceeds(getDoc(doc(member(), 'feedback/f1')))
+  })
+
+  it('denies editing or deleting submitted feedback (immutable)', async () => {
+    await seed('feedback/f1', fb)
+    await assertFails(updateDoc(doc(member(), 'feedback/f1'), { text: 'edit' }))
+    await assertFails(deleteDoc(doc(member(), 'feedback/f1')))
+  })
+})
+
 describe('deny baseline (unmatched paths)', () => {
   it('denies reading an unmatched collection', async () => {
     await assertFails(getDoc(doc(member(), 'random/p1')))

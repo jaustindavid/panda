@@ -83,6 +83,14 @@ fire.
 
 ## Done
 
+- `[x]` **Feedback capture** [S] — 2026-06-29 (owner FR). A "Feedback" nav
+  link → `/feedback` route: one text box, author **auto-stamped** from sign-in
+  (owner chose auto over a typed username; "Posting as {name}"), Send →
+  `feedback` collection `{authorUid, authorName, text, createdAt}`. Rules:
+  member read (circle-wide, owner's choice) + create-self, **immutable** (no
+  update/delete); +5 emulator tests (31 total). Reviewed later via the
+  Firestore console — no in-app review screen in v1 (trivial follow-up).
+  Mirrors the notes pattern. `src/lib/feedback.ts`, `src/feedback/`.
 - `[x]` **Travel time vs straight-line distance** [M] — 2026-06-29 (owner
   picked; chose **b1+b2**, **Essentials** tier). Drive time from the user via
   Routes API **Compute Route Matrix** (`src/lib/travel.ts`, DRIVE +

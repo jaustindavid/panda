@@ -10,6 +10,7 @@ import { PlaceDetailRoute } from './place/PlaceDetailRoute.tsx'
 import { AddByNameScreen } from './place/AddByNameScreen.tsx'
 import { VisitsScreen } from './visits/VisitsScreen.tsx'
 import { RouletteScreen } from './roulette/RouletteScreen.tsx'
+import { FeedbackScreen } from './feedback/FeedbackScreen.tsx'
 
 function navClass({ isActive }: { isActive: boolean }) {
   return isActive ? 'text-slate-100' : 'text-slate-500'
@@ -30,6 +31,9 @@ function SignedInApp() {
             <NavLink to="/visits" className={navClass}>
               Visits
             </NavLink>
+            <NavLink to="/feedback" className={navClass}>
+              Feedback
+            </NavLink>
             <button
               type="button"
               onClick={() => void signOut()}
@@ -46,6 +50,7 @@ function SignedInApp() {
           <Route path="/add" element={<AddByNameScreen />} />
           <Route path="/roulette" element={<RouletteScreen />} />
           <Route path="/visits" element={<VisitsScreen />} />
+          <Route path="/feedback" element={<FeedbackScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppShell>
