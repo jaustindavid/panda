@@ -292,10 +292,29 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
 
 Google Maps Platform is the only metered dependency, and **opening-hours
 fields force the Enterprise SKU** — so the constrained resource is the
-**1,000 free Enterprise calls/month** (per billing account). Verified call
-economics (fact-finder, 2026-06-26, cited in §11.2): Nearby Search
-Enterprise ≈ $0.035, Place Details Enterprise ≈ $0.020; a call bills at the
-highest SKU any requested field touches.
+**1,000 free Enterprise calls/month** (per billing account).
+
+**Verified current pricing (fact-finder 2026-06-29, cited).** Post-March-2025
+model = **per-SKU monthly free allotments** (the old $200 credit is gone),
+per billing account, reset on the 1st (Pacific). Free caps by category:
+**Essentials 10,000/mo · Pro 5,000/mo · Enterprise 1,000/mo**. A call bills
+at the **highest SKU any requested field touches**. panda's calls:
+
+- **Nearby Search + `regularOpeningHours` → Nearby Search Enterprise**:
+  1,000 free/mo, then **$35/1,000 ($0.035/call)**. _hours is the only field
+  that pushes it to Enterprise — but it's intrinsic: the go-able filter
+  needs hours for all 20 results, so dropping it would force a Place-Details
+  fan-out (worse). Keep hours in the one Nearby call._
+- **Place Details `id,displayName`** (visit-name re-hydration) → **Pro**
+  (not free — `displayName` is Pro): 5,000 free/mo, $17/1,000. `id`-only is
+  unlimited/free but nameless. **Text Search** (add-by-name) → Pro (5,000
+  free/mo) without hours.
+- **⚠️ Daily-cap math:** the 50/day Nearby cap × ~30 = ~1,500 > the 1,000/mo
+  Enterprise free cap → a maxed month bills ~$17.50 worst case. **~33/day
+  (≈990/mo) guarantees $0.** Realistic 4-person use (≈one search per
+  app-open) sits well under either; the $5 budget alert is the backstop.
+  _Owner call: lower the daily cap to ~33 for a hard-free guarantee, or keep
+  50 and accept trivial worst-case spend._
 
 Design rules that keep us in the free tier:
 
