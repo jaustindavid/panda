@@ -26,9 +26,11 @@ export interface OpeningPeriod {
 }
 
 export interface GoableInput {
-  /** regularOpeningHours.periods — undefined/empty ⇒ hours unknown. */
+  /** Opening periods — currentOpeningHours (holiday-aware) preferred over
+   *  regularOpeningHours by the mapper; undefined/empty ⇒ hours unknown. */
   periods?: OpeningPeriod[]
-  /** KITCHEN secondaryHoursType periods, if present (sparse, best-effort). */
+  /** KITCHEN secondaryHoursType periods, if present (sparse, best-effort).
+   *  Current (holiday-aware) preferred over regular by the mapper. */
   kitchenPeriods?: OpeningPeriod[]
   /** Good-time-to-go override: minutes before posted close the place really
    *  stops seating. Authoritative over KITCHEN + posted. */

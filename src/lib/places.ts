@@ -5,7 +5,10 @@ const ENDPOINT = 'https://places.googleapis.com/v1/places:searchNearby'
 
 // Field mask kept to the Enterprise (opening-hours) SKU. Deliberately NO
 // rating / priceLevel — those bump the call to the pricier Enterprise+
-// Atmosphere SKU (PRD §8). One Nearby Search per screen-load; never fan out.
+// Atmosphere SKU (PRD §8). `current*OpeningHours` (holiday-aware, ~7-day
+// window) sit in the SAME Enterprise SKU as the `regular*` fields (verified
+// against Google's data-fields doc, 2026-06-29) — so requesting both is free.
+// One Nearby Search per screen-load; never fan out.
 const FIELD_MASK = [
   'places.id',
   'places.displayName',
@@ -14,6 +17,8 @@ const FIELD_MASK = [
   'places.primaryType',
   'places.types',
   'places.utcOffsetMinutes',
+  'places.currentOpeningHours',
+  'places.currentSecondaryOpeningHours',
   'places.regularOpeningHours',
   'places.regularSecondaryOpeningHours',
 ].join(',')
@@ -54,6 +59,8 @@ interface RawPlace {
   primaryType?: string
   types?: string[]
   utcOffsetMinutes?: number
+  currentOpeningHours?: { periods?: RawPeriod[] }
+  currentSecondaryOpeningHours?: RawSecondaryHours[]
   regularOpeningHours?: { periods?: RawPeriod[] }
   regularSecondaryOpeningHours?: RawSecondaryHours[]
 }
@@ -134,6 +141,8 @@ const DETAILS_FIELD_MASK = [
   'primaryType',
   'types',
   'utcOffsetMinutes',
+  'currentOpeningHours',
+  'currentSecondaryOpeningHours',
   'regularOpeningHours',
   'regularSecondaryOpeningHours',
 ].join(',')
@@ -194,10 +203,18 @@ export async function searchTextRestaurants(
   return (data.places ?? []).map(mapPlace)
 }
 
-function mapPlace(raw: RawPlace): Place {
-  const kitchen = raw.regularSecondaryOpeningHours?.find(
-    (h) => h.secondaryHoursType === 'KITCHEN',
-  )
+/**
+ * Normalize a raw Places result into panda's `Place`. Prefers the
+ * holiday-aware `currentOpeningHours` (special days, ~7-day window) over the
+ * `regularOpeningHours` weekly schedule, falling back when the API omits it —
+ * so a holiday closure the go-able filter would otherwise miss is honored
+ * (PRD §11.2 Q2). Same for the (sparse, best-effort) KITCHEN secondary hours.
+ * Exported for unit testing the preference. Pure.
+ */
+export function mapPlace(raw: RawPlace): Place {
+  const kitchen =
+    raw.currentSecondaryOpeningHours?.find((h) => h.secondaryHoursType === 'KITCHEN') ??
+    raw.regularSecondaryOpeningHours?.find((h) => h.secondaryHoursType === 'KITCHEN')
   return {
     id: raw.id,
     name: raw.displayName?.text ?? '(unnamed)',
@@ -209,7 +226,11 @@ function mapPlace(raw: RawPlace): Place {
     primaryType: raw.primaryType,
     types: raw.types ?? [],
     utcOffsetMinutes: raw.utcOffsetMinutes ?? 0,
-    periods: raw.regularOpeningHours?.periods,
+    // Holiday-closed *today* still lists the window's other days, so current
+    // stays non-empty and wins; only an absent/empty current falls back.
+    periods: raw.currentOpeningHours?.periods?.length
+      ? raw.currentOpeningHours.periods
+      : raw.regularOpeningHours?.periods,
     kitchenPeriods: kitchen?.periods,
   }
 }

@@ -424,9 +424,11 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    `regularOpeningHours.periods[]` (Point: day 0–6, hour, minute; 24h omits
    `close`) carries the data; KITCHEN exists in `secondaryHoursType` but is
    **sparse** (best-effort, never the foundation). `currentOpeningHours`
-   (holiday-aware, ~7 days) is a **v1 deferral** — `regularOpeningHours`
-   alone satisfies the semantic. Remaining: only live cost-ceiling
-   validation, now handled by the §8 quota cap.
+   (holiday-aware, ~7 days) was a v1 deferral, **shipped post-v1 2026-06-29**:
+   the mapper now prefers it over `regularOpeningHours` (fallback when
+   absent/empty). Same **Enterprise** SKU as `regular*` (re-verified against
+   the data-fields doc, 2026-06-29) — no cost change. Remaining: only live
+   cost-ceiling validation, now handled by the §8 quota cap.
    Citations: `developers.google.com/maps/.../rest/v1/places`,
    `.../data-fields`, `.../billing-and-pricing/pricing`.
 3. **Caching ToS — ✅ SETTLED 2026-06-28 (fact-finder, cited).** Maps

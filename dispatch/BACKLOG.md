@@ -27,7 +27,18 @@ refinements + FRs in Later — owner picks if/when. Nothing in flight.
 
 ## Soon
 
-(v1 core all shipped — see Done. Post-core chambers are in Next / Later.)
+Owner-directed queue (owner sets order, 2026-06-29). Order given: holiday
+hours → search radius + genre-scope. Holiday hours **shipped** — next up:
+
+- `[ ]` **Search radius + genre-scope re-search** [S] — the expand-search
+  residue left after "search this area" (in Done). Two user-triggered,
+  §8 quota-aware controls (a new billed call per explicit action, **no
+  auto-fanout**): **(a)** a **"wider radius"** control — bump the Nearby
+  `radiusMeters` / recenter (`searchNearby` (New) has no paging, so a bigger
+  circle or a recenter is the lever); **(b)** **genre-scoped re-search** when
+  a tapped genre is sparse — the client-side genre filter only sees the
+  fetched ≤20, so "all pizza open nearby" needs a fresh search (typed Nearby
+  or Text Search). _Owner FR 2026-06-28; design PRD §11.2 Q10._
 
 ---
 
@@ -46,16 +57,6 @@ fire.
   on cards (smaller, no go-able change); (b2) feed travel time into the
   per-place arrival calc. Mind the §8 quota (batch ≤20, cache per
   session). _Design: PRD §11.2 Q9._
-- `[~]` **Expand search / "search this area"** — core **shipped**
-  2026-06-29 (commit on `main`): pan the map → a "🔍 Search this area"
-  button (appears once panned >1km from the current results center) re-runs
-  Nearby Search around the new center. One new billed call per explicit tap,
-  no auto-fanout (§8); distance still measured from the user's GPS, "You"
-  marker stays put. _Optional residue (owner picks if wanted): a "wider
-  radius" control; genre-scoped re-search when a tapped genre is sparse (the
-  client-side genre filter still only sees the fetched set). `searchNearby`
-  (New) has no paging → bigger radius / recenter, or switch to Text Search._
-  Owner FR 2026-06-28. _Design: PRD §11.2 Q10._
 - `[~]` **Aggressive restaurant-list caching — NOT VIABLE** [killed] —
   fact-finder (2026-06-28) confirmed Maps ToS §3.2.3 forbids caching
   content (hours/name/types). Monthly-poll-and-cache is out. The compliant
@@ -63,9 +64,6 @@ fire.
   *searches*) + tight Place Details field masks — folded into the
   re-hydration item above. _Caching is not a cost lever; §8 quota
   discipline is. PRD §11.2 Q3._
-- `[ ]` **Holiday-aware hours** [S] — prefer `currentOpeningHours`
-  (special-days, ~7-day window) over `regularOpeningHours` in the go-able
-  filter. _Deferred from M2 (PRD §11.2 Q2)._
 - `[ ]` **Tighten Places method quotas** [XS] — **`SearchTextRequest` is
   now USED** (add-by-name favorites) and sits at the default high quota →
   give it a ~50/day cap too (do **not** zero it). `GetPhotoMediaRequest`
@@ -103,6 +101,16 @@ fire.
 
 ## Done
 
+- `[x]` **Holiday-aware hours** [S] — 2026-06-29. The Nearby/Text/Details
+  field masks now request `currentOpeningHours` + `currentSecondaryOpeningHours`
+  (holiday-aware, ~7-day window), and `mapPlace` **prefers them over the
+  `regular*` weekly schedule**, falling back when absent/empty. So a holiday
+  closure the regular schedule would miss now reads as not-go-able. **Zero
+  cost impact** — `current*` sit in the *same* Nearby Search Enterprise SKU
+  as `regular*` (verified against Google's data-fields doc, 2026-06-29); no
+  SKU bump. Go-able core unchanged (still day-of-week week-minute matching;
+  `current` points carry a `date` the mapper ignores). `mapPlace` exported +
+  5 unit tests (57 total). _PRD §11.2 Q2._
 - `[x]` **A11y: single `<h1>` per route + brand → home link** [XS] —
   2026-06-29. The persistent header brand (icon + "panda") was an `<h1>`, so
   detail/add screens (which add their own `<h1>`) had two. Brand is now a
