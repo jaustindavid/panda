@@ -27,18 +27,9 @@ refinements + FRs in Later — owner picks if/when. Nothing in flight.
 
 ## Soon
 
-Owner-directed queue (owner sets order, 2026-06-29). Order given: holiday
-hours → search radius + genre-scope. Holiday hours **shipped** — next up:
-
-- `[ ]` **Search radius + genre-scope re-search** [S] — the expand-search
-  residue left after "search this area" (in Done). Two user-triggered,
-  §8 quota-aware controls (a new billed call per explicit action, **no
-  auto-fanout**): **(a)** a **"wider radius"** control — bump the Nearby
-  `radiusMeters` / recenter (`searchNearby` (New) has no paging, so a bigger
-  circle or a recenter is the lever); **(b)** **genre-scoped re-search** when
-  a tapped genre is sparse — the client-side genre filter only sees the
-  fetched ≤20, so "all pizza open nearby" needs a fresh search (typed Nearby
-  or Text Search). _Owner FR 2026-06-28; design PRD §11.2 Q10._
+Owner-directed queue (owner sets order). The 2026-06-29 order — holiday hours
+→ search radius + genre-scope — is **fully shipped** (both in Done). Queue
+clear; nothing in flight. Owner picks the next item from Later.
 
 ---
 
@@ -101,6 +92,18 @@ fire.
 
 ## Done
 
+- `[x]` **Search radius + genre-scope re-search** [S] — 2026-06-29. The
+  expand-search residue after "search this area". **(a) Search wider:** the
+  Nearby radius is now state (tiers 5 → 15 → 50 km, the New API max); a
+  "🔭 Search wider" control (list footer + empty state) steps the tier and
+  re-runs Nearby, with a "Searching within N km" caption. **(b) Genre-scoped
+  re-search:** with a genre active, "Find more {genre}" runs a Text Search
+  (maxResultCount 20) for that genre near the center; results merge into the
+  candidate set so the genre filter reaches beyond the fetched ≤20. Both are
+  one user-triggered billed call, **no auto-fanout** (§8) — widen = Nearby
+  Enterprise, genre-more = Text Search (hours mask → Enterprise). Controls
+  hidden in favorites-only view. Gates green; boots clean (no regression);
+  the billed buttons are owner-verified on-device. _PRD §11.2 Q10._
 - `[x]` **Holiday-aware hours** [S] — 2026-06-29. The Nearby/Text/Details
   field masks now request `currentOpeningHours` + `currentSecondaryOpeningHours`
   (holiday-aware, ~7-day window), and `mapPlace` **prefers them over the

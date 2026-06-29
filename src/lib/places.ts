@@ -176,6 +176,7 @@ export async function searchTextRestaurants(
   query: string,
   apiKey: string,
   bias?: LatLng,
+  maxResultCount = 8,
 ): Promise<Place[]> {
   const body: Record<string, unknown> = {
     textQuery: query,
@@ -183,7 +184,7 @@ export async function searchTextRestaurants(
     // Without this, includedType is a soft preference and non-restaurants
     // (hotels, the Amalfi Coast, …) leak in. Strict = restaurants only.
     strictTypeFiltering: true,
-    maxResultCount: 8,
+    maxResultCount,
   }
   if (bias) body.locationBias = { circle: { center: bias, radius: 50_000 } }
   const res = await fetch('https://places.googleapis.com/v1/places:searchText', {

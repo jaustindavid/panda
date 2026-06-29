@@ -16,6 +16,49 @@ function Centered({ children }: { children: ReactNode }) {
   )
 }
 
+/** Expand-search controls (PRD §11.2 Q10): widen the Nearby radius, and — when
+ *  a genre is active — re-search that genre via Text Search to reach beyond the
+ *  fetched nearest-20. Each is one user-triggered billed call (§8). Hidden in
+ *  favorites-only view (neither affects the favorites filter). */
+function ExpandControls() {
+  const d = useDiscoveryData()
+  if (d.favoritesOnly) return null
+  const showGenreMore = d.genre != null
+  if (!d.canWiden && !showGenreMore) return null
+
+  return (
+    <div className="flex flex-col items-center gap-2 px-4 py-5 text-sm">
+      {d.expandError != null && (
+        <p className="text-xs text-red-400">Couldn’t expand: {d.expandError}</p>
+      )}
+      <div className="flex flex-wrap justify-center gap-2">
+        {showGenreMore && (
+          <button
+            type="button"
+            onClick={d.findMoreInGenre}
+            disabled={d.expanding}
+            className="rounded-full bg-slate-800 px-4 py-2 font-medium text-slate-200 disabled:opacity-60"
+          >
+            {d.expanding ? 'Searching…' : `Find more ${d.genre}`}
+          </button>
+        )}
+        {d.canWiden && (
+          <button
+            type="button"
+            onClick={d.widenSearch}
+            className="rounded-full bg-slate-800 px-4 py-2 font-medium text-slate-200"
+          >
+            🔭 Search wider
+          </button>
+        )}
+      </div>
+      <p className="text-xs text-slate-500">
+        Searching within {Math.round(d.searchRadius / 1000)} km
+      </p>
+    </div>
+  )
+}
+
 /** Discovery home (PRD §7 F1): when-chips (client-side re-filter) → genre
  *  filter → go-able list. Data lives in DiscoveryProvider so opening a detail
  *  and coming back never re-fetches. */
@@ -101,24 +144,30 @@ export function DiscoveryScreen() {
           )}
           {!d.loading && !d.fetchError && shown.length === 0 && (
             <Centered>
-              {d.favoritesOnly
-                ? 'None of your favorites are go-able right now.'
-                : 'Nothing go-able right now. Try a later arrival.'}
+              <p>
+                {d.favoritesOnly
+                  ? 'None of your favorites are go-able right now.'
+                  : 'Nothing go-able right now. Try a later arrival.'}
+              </p>
+              <ExpandControls />
             </Centered>
           )}
           {!d.loading && !d.fetchError && shown.length > 0 && (
-            <ul className="flex flex-col gap-2">
-              {shown.map((item) => (
-                <PlaceCard
-                  key={item.place.id}
-                  item={item}
-                  annotation={d.annotations[item.place.id]}
-                  isFavorite={d.favoriteIds.has(item.place.id)}
-                  nowMs={d.nowMs}
-                  onSelect={(i) => navigate(`/place/${i.place.id}`)}
-                />
-              ))}
-            </ul>
+            <>
+              <ul className="flex flex-col gap-2">
+                {shown.map((item) => (
+                  <PlaceCard
+                    key={item.place.id}
+                    item={item}
+                    annotation={d.annotations[item.place.id]}
+                    isFavorite={d.favoriteIds.has(item.place.id)}
+                    nowMs={d.nowMs}
+                    onSelect={(i) => navigate(`/place/${i.place.id}`)}
+                  />
+                ))}
+              </ul>
+              <ExpandControls />
+            </>
           )}
         </div>
       )}

@@ -41,6 +41,20 @@ export interface DiscoveryData {
    *  billed call, user-triggered (PRD §8 / §11.2 Q10). */
   searchHere: (center: LatLng) => void
 
+  /** Current Nearby Search radius, metres (widen-able). */
+  searchRadius: number
+  /** True while the radius can still be widened (below the max tier). */
+  canWiden: boolean
+  /** Widen the search to the next radius tier + re-run Nearby (billed). */
+  widenSearch: () => void
+  /** Re-search the active genre via Text Search, beyond the nearest-20
+   *  (billed; no-op when no genre is selected or one is already in flight). */
+  findMoreInGenre: () => void
+  /** True while a genre-scoped re-search is in flight. */
+  expanding: boolean
+  /** Last genre-scoped re-search error, if any (shown inline). */
+  expandError: string | null
+
   /** Find a ranked place by id (for the detail route, no re-fetch). */
   findRanked: (placeId: string) => DiscoveryPlace | undefined
   /** Re-pull overrides + annotations after a detail edits them. */

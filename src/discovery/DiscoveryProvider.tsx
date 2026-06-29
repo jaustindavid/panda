@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useGeolocation } from '../hooks/useGeolocation.ts'
-import { searchNearbyRestaurants } from '../lib/places.ts'
+import { searchNearbyRestaurants, searchTextRestaurants } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
 import type { LatLng } from '../lib/distance.ts'
 import { availableGenres, rankDiscovery } from '../lib/discovery.ts'
@@ -16,6 +16,10 @@ import { DiscoveryContext } from './discovery-context.ts'
 import type { DiscoveryData } from './discovery-context.ts'
 
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+
+// "Search wider" radius tiers, metres. 5 km default; 50 km is the Nearby
+// Search (New) max. Each step is a new billed Nearby call (PRD §8 / §11.2 Q10).
+const RADIUS_TIERS = [5_000, 15_000, 50_000]
 
 /** Holds discovery data for the whole signed-in session (above the routes),
  *  so list ⇄ detail ⇄ visits navigation never re-runs the Nearby Search. */
@@ -35,14 +39,21 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   // Override search center for "search this area"; falls back to user GPS.
   const [searchOverride, setSearchOverride] = useState<LatLng | null>(null)
   const searchCenter = searchOverride ?? geo.coords
+  // "Search wider" radius (metres) — widening re-runs the Nearby Search.
+  const [searchRadius, setSearchRadius] = useState(RADIUS_TIERS[0])
+  // Extra candidates from a genre-scoped re-search (Text Search); merged into
+  // the ranked set so a tapped genre can reach beyond the nearest-20.
+  const [extraPlaces, setExtraPlaces] = useState<Place[]>([])
+  const [expanding, setExpanding] = useState(false)
+  const [expandError, setExpandError] = useState<string | null>(null)
 
-  // One Nearby Search per search center (user GPS or a "search this area"
-  // point) — a new billed call per explicit recenter (PRD §8 / §11.2 Q10).
+  // One Nearby Search per (search center, radius) — a new billed call per
+  // explicit recenter / widen (PRD §8 / §11.2 Q10).
   useEffect(() => {
     if (geo.status !== 'granted' || !searchCenter) return
     const center = searchCenter
     let cancelled = false
-    searchNearbyRestaurants({ apiKey: MAPS_KEY, center })
+    searchNearbyRestaurants({ apiKey: MAPS_KEY, center, radiusMeters: searchRadius })
       .then((res) => {
         if (cancelled) return
         setPlaces(res)
@@ -54,7 +65,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [geo.status, searchCenter])
+  }, [geo.status, searchCenter, searchRadius])
 
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 60_000)
@@ -86,11 +97,12 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
 
   const ranked = useMemo(() => {
     if (!geo.coords) return []
-    // Merge nearby results with saved favorites (so far favorites still
-    // appear), preferring fresh nearby data on overlap. Then go-able-rank,
-    // then drop blocked (no-go) places.
+    // Merge the candidate set: saved favorites (so far favorites still
+    // appear) + genre-scoped extras + nearby results, with fresh nearby data
+    // preferred on overlap. Then go-able-rank, then drop blocked (no-go).
     const byId = new Map<string, Place>()
     for (const fp of favoritePlaces) byId.set(fp.id, fp)
+    for (const ep of extraPlaces) byId.set(ep.id, ep)
     for (const p of places ?? []) byId.set(p.id, p)
     const r = rankDiscovery({
       places: [...byId.values()],
@@ -100,7 +112,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       overrides,
     })
     return r.filter((d) => !nogoIds.has(d.place.id))
-  }, [places, favoritePlaces, nogoIds, geo.coords, nowMs, offset, overrides])
+  }, [places, favoritePlaces, extraPlaces, nogoIds, geo.coords, nowMs, offset, overrides])
 
   const favoriteIds = useMemo(
     () => new Set(favoritePlaces.map((p) => p.id)),
@@ -114,6 +126,30 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     if (genre) list = list.filter((r) => r.genre === genre)
     return list
   }, [ranked, genre, favoritesOnly, favoriteIds])
+
+  const canWiden = searchRadius < RADIUS_TIERS[RADIUS_TIERS.length - 1]
+  // Widen the Nearby Search to the next radius tier; the effect re-fetches.
+  const widenSearch = () =>
+    setSearchRadius((r) => RADIUS_TIERS.find((t) => t > r) ?? r)
+
+  // Genre-scoped re-search: a Text Search for the active genre near the
+  // current center, merged into the candidate set so the genre filter reaches
+  // beyond the fetched nearest-20 (one billed call per tap, PRD §11.2 Q10).
+  const findMoreInGenre = () => {
+    if (!genre || !searchCenter || expanding) return
+    setExpanding(true)
+    setExpandError(null)
+    searchTextRestaurants(genre, MAPS_KEY, searchCenter, 20)
+      .then((res) =>
+        setExtraPlaces((prev) => {
+          const byId = new Map(prev.map((p) => [p.id, p]))
+          for (const p of res) byId.set(p.id, p)
+          return [...byId.values()]
+        }),
+      )
+      .catch((e) => setExpandError(e instanceof Error ? e.message : String(e)))
+      .finally(() => setExpanding(false))
+  }
 
   const value: DiscoveryData = {
     geoStatus: geo.status,
@@ -138,6 +174,12 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     nowMs,
     searchCenter,
     searchHere: (center) => setSearchOverride(center),
+    searchRadius,
+    canWiden,
+    widenSearch,
+    findMoreInGenre,
+    expanding,
+    expandError,
     findRanked: (placeId) => ranked.find((d) => d.place.id === placeId),
     reloadCircleData: () => setCircleRefresh((r) => r + 1),
   }
