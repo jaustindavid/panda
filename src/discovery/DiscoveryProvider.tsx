@@ -24,6 +24,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [offset, setOffset] = useState(15) // default +15 (PRD §3)
   const [genre, setGenre] = useState<string | null>(null)
+  const [favoritesOnly, setFavoritesOnly] = useState(false)
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [overrides, setOverrides] = useState<Record<string, number>>({})
   const [annotations, setAnnotations] = useState<Record<string, PlaceAnnotation>>({})
@@ -98,10 +99,12 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   )
 
   const genres = useMemo(() => availableGenres(ranked), [ranked])
-  const shown = useMemo(
-    () => (genre ? ranked.filter((r) => r.genre === genre) : ranked),
-    [ranked, genre],
-  )
+  const shown = useMemo(() => {
+    let list = ranked
+    if (favoritesOnly) list = list.filter((r) => favoriteIds.has(r.place.id))
+    if (genre) list = list.filter((r) => r.genre === genre)
+    return list
+  }, [ranked, genre, favoritesOnly, favoriteIds])
 
   const value: DiscoveryData = {
     geoStatus: geo.status,
@@ -121,6 +124,8 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     setOffset,
     genre,
     setGenre,
+    favoritesOnly,
+    setFavoritesOnly,
     nowMs,
     findRanked: (placeId) => ranked.find((d) => d.place.id === placeId),
     reloadCircleData: () => setCircleRefresh((r) => r + 1),

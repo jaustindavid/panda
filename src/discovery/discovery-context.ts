@@ -29,6 +29,9 @@ export interface DiscoveryData {
   setOffset: (minutes: number) => void
   genre: string | null
   setGenre: (genre: string | null) => void
+  /** Restrict the list (and roulette) to saved favorites. */
+  favoritesOnly: boolean
+  setFavoritesOnly: (on: boolean) => void
   nowMs: number
 
   /** Find a ranked place by id (for the detail route, no re-fetch). */

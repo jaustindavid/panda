@@ -47,13 +47,29 @@ export function DiscoveryScreen() {
     <div className="flex h-full flex-col gap-3">
       <WhenChips value={d.offset} onChange={d.setOffset} arrivalLabel={arrivalLabel} />
       <GenreFilter genres={d.genres} selected={d.genre} onSelect={d.setGenre} />
-      <button
-        type="button"
-        onClick={() => navigate('/add')}
-        className="self-start text-sm text-slate-400"
-      >
-        ＋ Add a favorite by name
-      </button>
+      <div className="flex items-center gap-3 text-sm">
+        {d.favoriteIds.size > 0 && (
+          <button
+            type="button"
+            aria-pressed={d.favoritesOnly}
+            onClick={() => d.setFavoritesOnly(!d.favoritesOnly)}
+            className={`rounded-full px-3 py-1 font-medium ${
+              d.favoritesOnly
+                ? 'bg-amber-400/20 text-amber-200'
+                : 'bg-slate-800 text-slate-300'
+            }`}
+          >
+            ★ Favorites
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => navigate('/add')}
+          className="text-slate-400"
+        >
+          ＋ Add by name
+        </button>
+      </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {d.loading && <Centered>Looking for places…</Centered>}
@@ -64,7 +80,11 @@ export function DiscoveryScreen() {
           </Centered>
         )}
         {!d.loading && !d.fetchError && shown.length === 0 && (
-          <Centered>Nothing go-able right now. Try a later arrival.</Centered>
+          <Centered>
+            {d.favoritesOnly
+              ? 'None of your favorites are go-able right now.'
+              : 'Nothing go-able right now. Try a later arrival.'}
+          </Centered>
         )}
         {!d.loading && !d.fetchError && shown.length > 0 && (
           <ul className="flex flex-col gap-2">
