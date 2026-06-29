@@ -95,6 +95,33 @@ export async function searchNearbyRestaurants(
   return (data.places ?? []).map(mapPlace)
 }
 
+// Session-scoped name cache for visit-history re-hydration. In-memory only
+// (not durable storage) — ToS-compliant, and it dedupes repeat Place Details
+// calls within a session against the GetPlaceRequest daily cap (PRD §8).
+const nameCache = new Map<string, string>()
+
+/**
+ * Re-hydrate a place's display name from its Place ID (Place Details, New).
+ * Used by the visits view (PRD §11.2 Q3a — store ID, fetch name on demand).
+ * Cached per session; returns a fallback label on error (e.g. quota 429).
+ */
+export async function getPlaceName(placeId: string, apiKey: string): Promise<string> {
+  const cached = nameCache.get(placeId)
+  if (cached !== undefined) return cached
+  try {
+    const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+      headers: { 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': 'id,displayName' },
+    })
+    if (!res.ok) return '(place unavailable)'
+    const data = (await res.json()) as { displayName?: { text?: string } }
+    const name = data.displayName?.text ?? '(unnamed place)'
+    nameCache.set(placeId, name)
+    return name
+  } catch {
+    return '(place unavailable)'
+  }
+}
+
 function mapPlace(raw: RawPlace): Place {
   const kitchen = raw.regularSecondaryOpeningHours?.find(
     (h) => h.secondaryHoursType === 'KITCHEN',

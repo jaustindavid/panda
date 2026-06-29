@@ -6,7 +6,13 @@ import { formatRelative } from '../lib/time.ts'
 
 /** Shared, attributed notes for a place (PRD §7 F4). One-shot reads; reloads
  *  after each mutation. Any member can add; author can edit/delete own. */
-export function NotesSection({ placeId }: { placeId: string }) {
+export function NotesSection({
+  placeId,
+  onChanged,
+}: {
+  placeId: string
+  onChanged?: () => void
+}) {
   const { user } = useAuth()
   const [notes, setNotes] = useState<Note[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +34,7 @@ export function NotesSection({ placeId }: { placeId: string }) {
 
   async function reload() {
     setNotes(await listNotes(placeId))
+    onChanged?.()
   }
 
   async function handleAdd() {

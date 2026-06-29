@@ -47,26 +47,33 @@ function toMillis(v: unknown): number | null {
   return null
 }
 
+function fromDoc(id: string, data: NoteDoc): Note {
+  return {
+    id,
+    placeId: data.placeId,
+    authorUid: data.authorUid,
+    authorName: data.authorName ?? 'Someone',
+    text: data.text,
+    createdAt: toMillis(data.createdAt),
+    updatedAt: toMillis(data.updatedAt),
+  }
+}
+
 /** All notes for a place (one-shot read — no live listener, per AGENTS.md).
  *  Sorted oldest-first client-side to avoid a composite index. */
 export async function listNotes(placeId: string): Promise<Note[]> {
   const snap = await getDocs(
     query(collection(db, COLLECTION), where('placeId', '==', placeId)),
   )
-  const notes = snap.docs.map((d) => {
-    const data = d.data() as NoteDoc
-    return {
-      id: d.id,
-      placeId: data.placeId,
-      authorUid: data.authorUid,
-      authorName: data.authorName ?? 'Someone',
-      text: data.text,
-      createdAt: toMillis(data.createdAt),
-      updatedAt: toMillis(data.updatedAt),
-    }
-  })
+  const notes = snap.docs.map((d) => fromDoc(d.id, d.data() as NoteDoc))
   notes.sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0))
   return notes
+}
+
+/** All notes across the circle (for discovery annotations — note counts). */
+export async function listAllNotes(): Promise<Note[]> {
+  const snap = await getDocs(collection(db, COLLECTION))
+  return snap.docs.map((d) => fromDoc(d.id, d.data() as NoteDoc))
 }
 
 export async function addNote(placeId: string, text: string): Promise<void> {

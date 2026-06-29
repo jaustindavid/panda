@@ -1,15 +1,27 @@
 import { formatDistance } from '../lib/distance.ts'
 import type { DiscoveryPlace } from '../lib/discovery.ts'
+import type { PlaceAnnotation } from '../lib/annotations.ts'
+import { formatRelative } from '../lib/time.ts'
 
 interface PlaceCardProps {
   item: DiscoveryPlace
+  annotation?: PlaceAnnotation
+  /** Passed from the parent (never Date.now() in render). */
+  nowMs: number
   onSelect: (item: DiscoveryPlace) => void
 }
 
-/** One discovery result; tap to open detail + notes. M3 adds notes count +
- *  last visit later (PRD §7 F1). */
-export function PlaceCard({ item, onSelect }: PlaceCardProps) {
+/** One discovery result; tap to open detail. Shows circle annotations — note
+ *  count + last visit (PRD §7 F1) — when present. */
+export function PlaceCard({ item, annotation, nowMs, onSelect }: PlaceCardProps) {
   const unknown = item.status === 'hours-unknown'
+  const noteCount = annotation?.noteCount ?? 0
+  const lastVisitAt = annotation?.lastVisitAt ?? null
+
+  const marks: string[] = []
+  if (noteCount > 0) marks.push(`📝 ${noteCount}`)
+  if (lastVisitAt != null) marks.push(`📍 ${formatRelative(lastVisitAt, nowMs)}`)
+
   return (
     <li>
       <button
@@ -22,6 +34,11 @@ export function PlaceCard({ item, onSelect }: PlaceCardProps) {
           <span className="block truncate text-sm text-slate-400">
             {item.genre} · {formatDistance(item.distanceMeters)}
           </span>
+          {marks.length > 0 && (
+            <span className="mt-0.5 block truncate text-xs text-slate-500">
+              {marks.join('  ')}
+            </span>
+          )}
         </span>
         <span
           className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${

@@ -5,6 +5,11 @@ import { searchNearbyRestaurants } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
 import { availableGenres, rankDiscovery } from '../lib/discovery.ts'
 import type { DiscoveryPlace } from '../lib/discovery.ts'
+import { buildAnnotations } from '../lib/annotations.ts'
+import type { PlaceAnnotation } from '../lib/annotations.ts'
+import { loadOverrideMap } from '../lib/overrides.ts'
+import { listAllNotes } from '../lib/notes.ts'
+import { listVisits } from '../lib/visits.ts'
 import { formatClock } from '../lib/time.ts'
 import { WhenChips } from './WhenChips.tsx'
 import { GenreFilter } from './GenreFilter.tsx'
@@ -33,6 +38,11 @@ export function DiscoveryScreen() {
   // "now" as state (lazy-init, refreshed on a timer) — never Date.now() in
   // render. A minute's granularity is plenty for go-ability.
   const [nowMs, setNowMs] = useState(() => Date.now())
+  // Circle's own data (overrides feed the filter; annotations badge cards).
+  // Reloaded when returning from a detail (a visit/override/note may change).
+  const [overrides, setOverrides] = useState<Record<string, number>>({})
+  const [annotations, setAnnotations] = useState<Record<string, PlaceAnnotation>>({})
+  const [circleRefresh, setCircleRefresh] = useState(0)
 
   // One Nearby Search per location fix; chip taps re-filter client-side (§8).
   // The effect only sets state from async callbacks (no synchronous setState).
@@ -55,6 +65,22 @@ export function DiscoveryScreen() {
     return () => clearInterval(id)
   }, [])
 
+  // Circle data (our own Firestore data — cheap). Best-effort: annotations
+  // are non-critical, so a failure just leaves cards unbadged.
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([loadOverrideMap(), listAllNotes(), listVisits()])
+      .then(([ov, notes, visits]) => {
+        if (cancelled) return
+        setOverrides(ov)
+        setAnnotations(buildAnnotations(notes, visits))
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [circleRefresh])
+
   // Loading is derived, not stored: granted but no result and no error yet.
   const loading = geo.status === 'granted' && places === null && fetchError === null
 
@@ -65,15 +91,25 @@ export function DiscoveryScreen() {
       origin: geo.coords,
       nowMs,
       arrivalOffsetMin: offset,
+      overrides,
     })
-  }, [places, geo.coords, nowMs, offset])
+  }, [places, geo.coords, nowMs, offset, overrides])
 
   const genres = useMemo(() => availableGenres(ranked), [ranked])
   const shown = genre ? ranked.filter((d) => d.genre === genre) : ranked
   const arrivalLabel = formatClock(nowMs + offset * 60_000)
 
   if (selected != null) {
-    return <PlaceDetail item={selected} onBack={() => setSelected(null)} />
+    return (
+      <PlaceDetail
+        item={selected}
+        onBack={() => {
+          setSelected(null)
+          setCircleRefresh((r) => r + 1)
+        }}
+        onChanged={() => setCircleRefresh((r) => r + 1)}
+      />
+    )
   }
 
   if (!MAPS_KEY) {
@@ -118,7 +154,13 @@ export function DiscoveryScreen() {
         {!loading && !fetchError && shown.length > 0 && (
           <ul className="flex flex-col gap-2">
             {shown.map((item) => (
-              <PlaceCard key={item.place.id} item={item} onSelect={setSelected} />
+              <PlaceCard
+                key={item.place.id}
+                item={item}
+                annotation={annotations[item.place.id]}
+                nowMs={nowMs}
+                onSelect={setSelected}
+              />
             ))}
           </ul>
         )}

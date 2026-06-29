@@ -1,15 +1,20 @@
 import { formatDistance } from '../lib/distance.ts'
 import type { DiscoveryPlace } from '../lib/discovery.ts'
+import { PlaceVisits } from './PlaceVisits.tsx'
+import { OverrideControl } from './OverrideControl.tsx'
 import { NotesSection } from './NotesSection.tsx'
 
 interface PlaceDetailProps {
   item: DiscoveryPlace
   onBack: () => void
+  /** Called after a visit/override/note change so discovery can re-pull. */
+  onChanged?: () => void
 }
 
-/** Place detail (PRD §7 F4): the place's basics (reused from the discovery
- *  payload — no extra Maps call) + the circle's shared notes. */
-export function PlaceDetail({ item, onBack }: PlaceDetailProps) {
+/** Place detail (PRD §7 F4/F4b/F3): the place's basics (reused from the
+ *  discovery payload — no extra Maps call) + here-now visits, the
+ *  good-time-to-go override, and the circle's shared notes. */
+export function PlaceDetail({ item, onBack, onChanged }: PlaceDetailProps) {
   const unknown = item.status === 'hours-unknown'
   return (
     <div className="flex h-full flex-col gap-4">
@@ -39,8 +44,10 @@ export function PlaceDetail({ item, onBack }: PlaceDetailProps) {
         </span>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <NotesSection placeId={item.place.id} />
+      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
+        <PlaceVisits placeId={item.place.id} onChanged={onChanged} />
+        <OverrideControl placeId={item.place.id} onChanged={onChanged} />
+        <NotesSection placeId={item.place.id} onChanged={onChanged} />
       </div>
     </div>
   )
