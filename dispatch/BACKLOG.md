@@ -19,17 +19,8 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 
 ## Next
 
-Active candidates for the immediate next dispatch (M4 done).
+Active candidates for the immediate next dispatch (M4 + back-nav done).
 
-- `[ ]` **Back-nav fix (swipe/hardware back)** [S] — **bug:** in-app nav
-  (list ⇄ detail, Eat ⇄ Visits) uses React state with no History API
-  integration, so a back gesture exits the PWA / leaves the browser page
-  instead of stepping back in-app. Fix approach is an open call:
-  (a) lightweight History API wiring (no dep — pushState on open, popstate
-  to close; fine for the current 2-level nav); (b) adopt a router
-  (react-router-dom — proper back/forward + deep-linkable screens; scales
-  to roulette/favorites/map). Owner FR 2026-06-28; promoted from the M3
-  deferral. _Design: ARCHITECTURE §9._
 - `[~]` **M5 — Roulette** [S] — random pick over the on-screen go-able +
   filtered set; accept or respin. _Design: PRD §7 (F2)._
 - `[ ]` **Discovery map view** [S] — the deferred M2 fast-follow: list ⇄
@@ -137,6 +128,13 @@ fire.
 
 ## Done
 
+- `[x]` **Back-nav fix (router)** [S] — 2026-06-28. Swipe/hardware back was
+  exiting the PWA (local-state nav, no History integration). Adopted
+  **react-router-dom** (owner-approved): routes / · /place/:placeId ·
+  /visits; `DiscoveryProvider` holds geo + Nearby Search + circle data
+  above the routes so back/forward never re-fetch (one search per session);
+  deep links work (SPA rewrite + cold Place Details fetch). Verified via
+  harness (back → list, no re-fetch). Commit cfe8c01.
 - `[x]` **M4 — Here-now + visits + overrides** [M] — 2026-06-28,
   owner-verified. One-tap "I'm here" → Visit (byName denormalized);
   good-time-to-go override (presets → `closeBufferMin`) feeding the go-able

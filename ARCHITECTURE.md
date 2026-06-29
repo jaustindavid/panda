@@ -151,8 +151,14 @@ notes), **M4 (here-now visits + good-time-to-go override + discovery
 annotations** — `src/lib/{visits,overrides,annotations}.ts`,
 `src/place/{PlaceVisits,OverrideControl}.tsx`, `src/visits/VisitsScreen.tsx`;
 on the M1 visits/overrides rules; override feeds `rankDiscovery`; visit
-names re-hydrated via `getPlaceName`, deduped + session-cached). Still
-ahead: **back-nav fix** (swipe/hardware back exits the app — local-state nav
-has no History integration; lightweight wiring vs a router), the discovery
-**map view** (deferred M2 fast-follow), roulette (M5). This doc grows as
-they land.
+names re-hydrated via `getPlaceName`, deduped + session-cached).
+
+**Navigation: react-router-dom** (routes `/` · `/place/:placeId` ·
+`/visits`). `DiscoveryProvider` holds geo + the Nearby Search + circle data
+**above** the routes, so list ⇄ detail ⇄ visits never re-fetch (one search
+per app session — fixed the swipe/hardware-back-exits bug). Deep links work
+(firebase.json SPA rewrite + a cold Place Details fetch when a detail opens
+without discovery context).
+
+Still ahead: the discovery **map view** (deferred M2 fast-follow), roulette
+(M5). This doc grows as they land.
