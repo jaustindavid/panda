@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDiscoveryData } from './discovery-context.ts'
@@ -5,6 +6,7 @@ import { formatClock } from '../lib/time.ts'
 import { WhenChips } from './WhenChips.tsx'
 import { GenreFilter } from './GenreFilter.tsx'
 import { PlaceCard } from './PlaceCard.tsx'
+import { DiscoveryMap } from './DiscoveryMap.tsx'
 
 function Centered({ children }: { children: ReactNode }) {
   return (
@@ -20,6 +22,7 @@ function Centered({ children }: { children: ReactNode }) {
 export function DiscoveryScreen() {
   const d = useDiscoveryData()
   const navigate = useNavigate()
+  const [view, setView] = useState<'list' | 'map'>('list')
 
   const shown = d.shown
   const arrivalLabel = formatClock(d.nowMs + d.offset * 60_000)
@@ -69,38 +72,53 @@ export function DiscoveryScreen() {
         >
           ＋ Add by name
         </button>
+        <button
+          type="button"
+          onClick={() => setView(view === 'map' ? 'list' : 'map')}
+          className="ml-auto rounded-full bg-slate-800 px-3 py-1 font-medium text-slate-300"
+        >
+          {view === 'map' ? '☰ List' : '🗺 Map'}
+        </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {d.loading && <Centered>Looking for places…</Centered>}
-        {!d.loading && d.fetchError && (
-          <Centered>
-            <p className="text-slate-300">Couldn’t load places.</p>
-            <p className="text-sm">{d.fetchError}</p>
-          </Centered>
-        )}
-        {!d.loading && !d.fetchError && shown.length === 0 && (
-          <Centered>
-            {d.favoritesOnly
-              ? 'None of your favorites are go-able right now.'
-              : 'Nothing go-able right now. Try a later arrival.'}
-          </Centered>
-        )}
-        {!d.loading && !d.fetchError && shown.length > 0 && (
-          <ul className="flex flex-col gap-2">
-            {shown.map((item) => (
-              <PlaceCard
-                key={item.place.id}
-                item={item}
-                annotation={d.annotations[item.place.id]}
-                isFavorite={d.favoriteIds.has(item.place.id)}
-                nowMs={d.nowMs}
-                onSelect={(i) => navigate(`/place/${i.place.id}`)}
-              />
-            ))}
-          </ul>
-        )}
-      </div>
+      {view === 'map' && d.coords != null ? (
+        <DiscoveryMap
+          origin={d.coords}
+          places={shown}
+          onSelect={(id) => navigate(`/place/${id}`)}
+        />
+      ) : (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {d.loading && <Centered>Looking for places…</Centered>}
+          {!d.loading && d.fetchError && (
+            <Centered>
+              <p className="text-slate-300">Couldn’t load places.</p>
+              <p className="text-sm">{d.fetchError}</p>
+            </Centered>
+          )}
+          {!d.loading && !d.fetchError && shown.length === 0 && (
+            <Centered>
+              {d.favoritesOnly
+                ? 'None of your favorites are go-able right now.'
+                : 'Nothing go-able right now. Try a later arrival.'}
+            </Centered>
+          )}
+          {!d.loading && !d.fetchError && shown.length > 0 && (
+            <ul className="flex flex-col gap-2">
+              {shown.map((item) => (
+                <PlaceCard
+                  key={item.place.id}
+                  item={item}
+                  annotation={d.annotations[item.place.id]}
+                  isFavorite={d.favoriteIds.has(item.place.id)}
+                  nowMs={d.nowMs}
+                  onSelect={(i) => navigate(`/place/${i.place.id}`)}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {!d.loading && !d.fetchError && shown.length > 0 && (
         <button
