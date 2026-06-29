@@ -67,9 +67,32 @@ fire.
 - `[ ]` **Map: AdvancedMarker + Map ID** [XS] — the map uses the classic
   `google.maps.Marker` (no Map ID needed, but logs a deprecation warning).
   Upgrade to `AdvancedMarker` once a vector **Map ID** is created in the
-  console — removes the warning and allows custom/branded pins (e.g. ★ for
-  favorites). Owner console step + small code swap. _From map view,
-  2026-06-29._
+  console — removes the warning and allows custom/branded pins (★ for
+  favorites, 🚫 for the blocked-places map below). Owner console step + small
+  code swap. _From map view, 2026-06-29._
+- `[ ]` **Audit / manage the no-go list — blocked-places map** [M] — owner FR
+  2026-06-29. **Trigger: only if blocked places actually pile up** — owner
+  isn't sure it's a real problem yet. **Problem:** the no-go list is **not
+  auditable in-app** — `nogos` is only read as a Set of IDs to filter
+  discovery, blocked places are excluded from discovery + roulette (so you
+  can't browse to them), and no screen lists them. Only recovery today =
+  remember the name → "Add by name" search → tap → detail → un-block
+  (add-by-name doesn't filter nogos, and results link to `/place/:id`). Raw
+  who/when is in the Firestore console, but as **place IDs, not names**.
+  **Proposed: a blocked-places MAP** (owner's call — scales better than a list
+  for many): reuse the `@vis.gl` map from discovery, with a marker per blocked
+  place (and a "You" marker), tap a marker → its detail → un-block; reached via
+  a discreet **"🚫 Blocked (N)"** entry (top nav is full). **Key design call —
+  coordinates:** blocks store **ID only** (no location), so either **(a) store
+  lat/lng at block time** (recommended — lat/lng caching is ToS-allowed, map
+  renders from stored data = **zero per-place calls, scales free**; change
+  `addNoGo(place)` to snapshot `location` + `loadNoGos()` to return it; legacy
+  ID-only blocks re-hydrate once) or **(b) re-hydrate every blocked place on
+  map-open** (ToS-purest but **N billed Place Details per open** — bad at the
+  expected scale). **Markers:** literal 🚫-emoji pins need AdvancedMarker + a
+  Map ID (item above) — classic red/distinct markers until then. _Fallback if
+  the map is overkill: a simple Visits-style list screen (names re-hydrated).
+  Diagnosed 2026-06-29; PRD §7 F7._
 - `[ ]` **Favorites snapshot refresh / drift-detection** [S] — favorites
   store the hours snapshot from save-time; if a place changes hours it goes
   stale until re-saved. Re-poll a favorite live on a short interval (or on
