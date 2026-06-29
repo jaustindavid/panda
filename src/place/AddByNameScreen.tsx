@@ -108,7 +108,7 @@ export function AddByNameScreen() {
                       : 'bg-slate-800 text-slate-300'
                   }`}
                 >
-                  {saved ? '★ Saved' : '☆ Save'}
+                  {saved ? '★ Favorited' : '☆ Favorite'}
                 </button>
               </li>
             )

@@ -53,7 +53,7 @@ export function PlaceActions({
               : 'bg-slate-800 text-slate-300'
           }`}
         >
-          {isFav ? '★ Saved' : '☆ Save'}
+          {isFav ? '★ Favorited' : '☆ Favorite'}
         </button>
         <button
           type="button"
