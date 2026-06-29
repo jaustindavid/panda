@@ -557,8 +557,11 @@ budget** is the email alert. The split-billing trigger is in §13.3.
     `includedType` / `strictTypeFiltering` and **client-side-filtering** to
     results whose `types` intersect the set (also a sturdier fix for the
     "Amalfi returned non-restaurants" leak). Encode the set as one shared
-    constant so both surfaces + this list stay in sync. _Set agreed;
-    implementation pending owner go._
+    constant so both surfaces + this list stay in sync. **SHIPPED 2026-06-29:**
+    `EATERY_TYPES` in `places.ts` drives Nearby `includedTypes` + the Text
+    Search client-side filter. Verified live: Kudu / a pâtisserie / a café
+    enter the nearest-20 downtown; "Ruby's" is now addable by name (6 hits,
+    was 0); a hotel query returns 0.
 
 ---
 

@@ -3,6 +3,14 @@ import type { OpeningPeriod } from './goable.ts'
 
 const ENDPOINT = 'https://places.googleapis.com/v1/places:searchNearby'
 
+// What counts as "a place to eat" (PRD §11.2 Q11). Table A searchable types,
+// so they're valid Nearby `includedTypes`; granular eateries (bagel_shop,
+// coffee_shop, …) all also carry one of these, so this set catches them.
+// Owner's guiding examples drive it — extend here when a should-be-hit is
+// missed. Used both server-side (Nearby filter) and client-side (Text Search,
+// whose `includedType` is singular and can't take the set).
+const EATERY_TYPES = ['restaurant', 'cafe', 'bakery']
+
 // Field mask kept to the Enterprise (opening-hours) SKU. Deliberately NO
 // rating / priceLevel — those bump the call to the pricier Enterprise+
 // Atmosphere SKU (PRD §8). `current*OpeningHours` (holiday-aware, ~7-day
@@ -92,7 +100,7 @@ export async function searchNearbyRestaurants(
       'X-Goog-FieldMask': FIELD_MASK,
     },
     body: JSON.stringify({
-      includedTypes: ['restaurant'],
+      includedTypes: EATERY_TYPES,
       maxResultCount,
       rankPreference: 'DISTANCE',
       locationRestriction: { circle: { center, radius: radiusMeters } },
@@ -167,10 +175,14 @@ export async function getPlaceDetails(
 }
 
 /**
- * Find restaurants by name (Text Search, New) for add-by-name favorites
- * (PRD §7 F8). `bias` ranks nearby matches first but does NOT restrict —
- * "not close" favorites are the whole point. User-triggered (one call per
- * submitted search).
+ * Find eateries by name (Text Search, New) — add-by-name favorites + the
+ * genre-scoped re-search (PRD §7 F8, §11.2 Q10/Q11). `bias` ranks nearby
+ * matches first but does NOT restrict — "not close" favorites are the point.
+ * The API's `includedType` is singular (can't take the multi-type eatery set)
+ * and the old strict restaurant-only filter dropped bagel shops / cafés, so we
+ * fetch unfiltered and keep only EATERY_TYPES client-side — which also keeps
+ * hotels / the Amalfi Coast out. User-triggered (one call per submitted
+ * search).
  */
 export async function searchTextRestaurants(
   query: string,
@@ -180,10 +192,6 @@ export async function searchTextRestaurants(
 ): Promise<Place[]> {
   const body: Record<string, unknown> = {
     textQuery: query,
-    includedType: 'restaurant',
-    // Without this, includedType is a soft preference and non-restaurants
-    // (hotels, the Amalfi Coast, …) leak in. Strict = restaurants only.
-    strictTypeFiltering: true,
     maxResultCount,
   }
   if (bias) body.locationBias = { circle: { center: bias, radius: 50_000 } }
@@ -201,7 +209,10 @@ export async function searchTextRestaurants(
     throw new Error(`Places searchText failed (${res.status}): ${detail}`)
   }
   const data = (await res.json()) as RawResponse
-  return (data.places ?? []).map(mapPlace)
+  // `includedType` is singular, so enforce the eatery set here (PRD §11.2 Q11).
+  return (data.places ?? [])
+    .map(mapPlace)
+    .filter((p) => p.types.some((t) => EATERY_TYPES.includes(t)))
 }
 
 /**

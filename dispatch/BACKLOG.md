@@ -94,6 +94,17 @@ fire.
 
 ## Done
 
+- `[x]` **Eatery type coverage — beyond `restaurant`** [S] — 2026-06-29 (owner
+  FR; Ruby's Bagels didn't show). Discovery searched `includedTypes:
+  ['restaurant']`, missing food places Google doesn't tag `restaurant` (bagel
+  shops, coffee shops, bakeries). Now a shared `EATERY_TYPES = ['restaurant',
+  'cafe', 'bakery']` (PRD §11.2 Q11, guiding-examples reference) drives both
+  the Nearby `includedTypes` and the Text Search path (add-by-name +
+  genre-scope), the latter via a **client-side filter** (its `includedType` is
+  singular) — which also replaced the old strict restaurant-only filter,
+  fixing the "non-restaurant leak" more robustly. Verified live: Kudu/café/
+  pâtisserie enter discovery; "Ruby's" addable by name (6 hits, was 0); hotels
+  excluded. Living set — extend on a missed should-be-hit. _PRD §11.2 Q11._
 - `[x]` **Distance cap on discovery (100 km)** [XS] — 2026-06-29 (owner FR;
   surfaced by the "wife in SLC" favorites question). `rankDiscovery` drops any
   candidate whose straight-line distance from the user's GPS exceeds
