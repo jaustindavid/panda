@@ -85,18 +85,24 @@ export function AddByNameScreen() {
             return (
               <li
                 key={place.id}
-                className="flex items-center justify-between gap-3 rounded-xl bg-slate-900 px-4 py-3"
+                className="flex items-center justify-between gap-2 rounded-xl bg-slate-900"
               >
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{place.name}</p>
-                  <p className="truncate text-sm text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/place/${place.id}`)}
+                  className="min-w-0 flex-1 px-4 py-3 text-left"
+                >
+                  <span className="block truncate font-medium">{place.name}</span>
+                  <span className="block truncate text-sm text-slate-400">
                     {genreLabel(place)}
-                  </p>
-                </div>
+                    {place.formattedAddress != null &&
+                      ` · ${place.formattedAddress}`}
+                  </span>
+                </button>
                 <button
                   type="button"
                   onClick={() => void toggle(place)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
+                  className={`mr-3 shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
                     saved
                       ? 'bg-amber-400/20 text-amber-200'
                       : 'bg-slate-800 text-slate-300'

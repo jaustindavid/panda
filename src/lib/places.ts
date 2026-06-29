@@ -9,6 +9,7 @@ const ENDPOINT = 'https://places.googleapis.com/v1/places:searchNearby'
 const FIELD_MASK = [
   'places.id',
   'places.displayName',
+  'places.formattedAddress',
   'places.location',
   'places.primaryType',
   'places.types',
@@ -22,6 +23,8 @@ const FIELD_MASK = [
 export interface Place {
   id: string
   name: string
+  /** Short address, for telling same-named places apart (Pro field). */
+  formattedAddress?: string
   location: LatLng
   primaryType?: string
   types: string[]
@@ -46,6 +49,7 @@ interface RawSecondaryHours {
 interface RawPlace {
   id: string
   displayName?: { text?: string }
+  formattedAddress?: string
   location?: { latitude: number; longitude: number }
   primaryType?: string
   types?: string[]
@@ -125,6 +129,7 @@ export async function getPlaceName(placeId: string, apiKey: string): Promise<str
 const DETAILS_FIELD_MASK = [
   'id',
   'displayName',
+  'formattedAddress',
   'location',
   'primaryType',
   'types',
@@ -166,6 +171,9 @@ export async function searchTextRestaurants(
   const body: Record<string, unknown> = {
     textQuery: query,
     includedType: 'restaurant',
+    // Without this, includedType is a soft preference and non-restaurants
+    // (hotels, the Amalfi Coast, …) leak in. Strict = restaurants only.
+    strictTypeFiltering: true,
     maxResultCount: 8,
   }
   if (bias) body.locationBias = { circle: { center: bias, radius: 50_000 } }
@@ -193,6 +201,7 @@ function mapPlace(raw: RawPlace): Place {
   return {
     id: raw.id,
     name: raw.displayName?.text ?? '(unnamed)',
+    formattedAddress: raw.formattedAddress,
     location: {
       latitude: raw.location?.latitude ?? 0,
       longitude: raw.location?.longitude ?? 0,

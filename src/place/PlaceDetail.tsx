@@ -66,6 +66,11 @@ export function PlaceDetail({
             {genre}
             {distanceMeters != null && ` · ${formatDistance(distanceMeters)}`}
           </p>
+          {place.formattedAddress != null && (
+            <p className="mt-0.5 truncate text-sm text-slate-500">
+              {place.formattedAddress}
+            </p>
+          )}
         </div>
         <StatusBadge status={status} />
       </div>

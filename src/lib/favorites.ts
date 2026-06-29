@@ -18,6 +18,7 @@ const COLLECTION = 'savedPlaces'
 // discovery/roulette regardless of proximity (PRD §7 F8).
 interface SavedPlaceDoc {
   name: string
+  formattedAddress?: string | null
   location: { latitude: number; longitude: number }
   primaryType?: string | null
   types?: string[]
@@ -31,6 +32,7 @@ function fromDoc(id: string, data: SavedPlaceDoc): Place {
   return {
     id,
     name: data.name,
+    formattedAddress: data.formattedAddress ?? undefined,
     location: data.location,
     primaryType: data.primaryType ?? undefined,
     types: data.types ?? [],
@@ -52,6 +54,7 @@ export async function addFavorite(place: Place): Promise<void> {
   if (user == null) throw new Error('Not signed in')
   await setDoc(doc(db, COLLECTION, place.id), {
     name: place.name,
+    formattedAddress: place.formattedAddress ?? null,
     location: place.location,
     primaryType: place.primaryType ?? null,
     types: place.types,
