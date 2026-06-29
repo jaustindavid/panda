@@ -94,8 +94,10 @@ fire.
   filter falls back to chip-only, cards omit "~min" (no regression). Cost:
   ~free (Compute Route Matrix Essentials $5/1k elements, **10k free/mo**;
   ~660 elements/mo expected). 7 unit tests (parser + per-place arrival).
-  **⚠️ Owner console step:** enable the **Routes API** + allow it on the Maps
-  key + set a daily quota cap (mirror Places). _PRD §11.2 Q9._
+  **Routes API enabled + contract verified live 2026-06-29** (browser harness:
+  SF→Oakland 13.4 km straight / 20 min drive vs Ferry Building 3.2 km / 16 min
+  — the bridge effect, confirmed). Owner: consider a daily quota cap on Routes
+  (mirror Places); $5 budget alert is the backstop. _PRD §11.2 Q9._
 - `[x]` **Search radius + genre-scope re-search** [S] — 2026-06-29. The
   expand-search residue after "search this area". **(a) Search wider:** the
   Nearby radius is now state (tiers 5 → 15 → 50 km, the New API max); a
