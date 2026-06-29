@@ -83,8 +83,9 @@ firebase.json / .firebaserc   hosting + firestore + emulator config
 - **Gate:** `App` routes loading → sign-in → not-allowed → app.
 - **Rules** mirror the PRD §6 table 1:1. Collections: `users` (write:
   self), `notes` (create: self, edit/delete: author), `visits` (create:
-  self, delete: creator), `overrides` (read/write: any member). Everything
-  else denied (NoGo is a later chamber). One+ emulator test per row.
+  self, delete: creator), `overrides` / `nogos` / `savedPlaces` (read/write:
+  any member — collective). Everything else denied. One+ emulator test per
+  row (26 tests).
 
 ## 5. Discovery & place data (M2 — landed)
 
@@ -161,8 +162,10 @@ per app session — fixed the swipe/hardware-back-exits bug). Deep links work
 without discovery context).
 
 **v1 core complete** — M1 (infra/auth) · M2 (discovery + go-able) · M3
-(detail + notes) · M4 (here-now/visits/overrides) · M5 (roulette,
-`src/roulette/`, plain random over the go-able set) + the router nav, all
-shipped. Post-core chambers ahead (BACKLOG): add-by-name favorites, the
-app icon, the discovery map view, the no-go list. This doc grows as they
+(detail + notes) · M4 (here-now/visits/overrides) · M5 (roulette) + router
+nav. **Post-core shipped:** app icon; **no-go** (`nogos`, excluded from
+ranked) + **add-by-name favorites** (`savedPlaces`, snapshot merged into
+the candidate set; Text Search on `/add`). Routes: `/` · `/place/:id` ·
+`/add` · `/roulette` · `/visits`. Still ahead (BACKLOG): the discovery
+**map view** (needs the Maps JS API console step). This doc grows as they
 land.

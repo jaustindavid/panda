@@ -42,24 +42,6 @@ the order.
 Committed and speculative chambers, post-core. Move to Soon as triggers
 fire.
 
-- `[~]` **No-go list** [S] — circle-shared **per-place** block (one-tap
-  "never show", the inverse of favoriting); hard-excludes from
-  discovery + roulette. Per-place only; no brand/category rules. _Committed.
-  Design: PRD §1.3, §3, §5 (NoGo), §6, §7 (F7)._
-- `[~]` **Add restaurants by name (saved favorites)** [M] — owner FR
-  2026-06-28. Search a place **by name** (Places **Text Search** — a new
-  surface, same key/API) → one-tap "favorite" stores `{placeId, name,
-  hours, snapshotAt}` in a circle-shared `SavedPlace` set → it joins
-  discovery + roulette **regardless of proximity** (far favorites stay in
-  the wheel). Symmetric twin of the no-go list; reverses the §1.2 "no
-  favorites" non-goal (owner-confirmed). **Favorites store a re-polled Maps
-  snapshot** — the accepted bounded ToS step-over (AGENTS.md guardrail +
-  PRD §11.2 Q3c): renders with no per-load API call; re-poll live on a
-  short interval (freshness + drift detection). Place ID is the identity
-  anchor (content never follows a successor business). **Watch
-  `GetPlaceRequest` consumption; reversible to ID-only if quota is ample**
-  (§13.3). Pairs with **M5 roulette**. _Committed. Design: PRD §1.3, §5
-  (SavedPlace), §6, §7 (F8), §11.2 Q3c._
 - `[~]` **Travel time vs straight-line distance** [M] — reinterpret the
   when-chip as "leave in…"; `arrival(place) = now + buffer +
   travel(place)`. **Owner FR 2026-06-28 (lives near a river):**
@@ -94,13 +76,13 @@ fire.
 - `[ ]` **Holiday-aware hours** [S] — prefer `currentOpeningHours`
   (special-days, ~7-day window) over `regularOpeningHours` in the go-able
   filter. _Deferred from M2 (PRD §11.2 Q2)._
-- `[ ]` **Tighten unused Places method quotas** [XS] — cap/zero the
-  per-day quotas panda never calls (`SearchTextRequest`,
-  `GetPhotoMediaRequest`) once discovery is verified working. The Maps
-  key is API- but **not** method-restricted, so this shrinks a
-  leaked-key blast radius on the shared billing account.
-  `SearchNearbyRequest` + `GetPlaceRequest` are already at 50/day.
-  _From M1 §7.4; deferred 2026-06-28 — harden after it works._
+- `[ ]` **Tighten Places method quotas** [XS] — **`SearchTextRequest` is
+  now USED** (add-by-name favorites) and sits at the default high quota →
+  give it a ~50/day cap too (do **not** zero it). `GetPhotoMediaRequest`
+  is still unused → cap/zero. The key is API- but **not** method-
+  restricted, so this shrinks a leaked-key blast radius.
+  `SearchNearbyRequest` + `GetPlaceRequest` already at 50/day. _Owner
+  console; from M1 §7.4._
 - `[ ]` **JS bundle size / code-splitting** [XS] — the Firebase SDK pushes
   the bundle to ~207 kB gzip (over Vite's 500 kB raw warning). Lazy-load
   Firestore / split chunks for faster first paint on cellular (PRD §9).
@@ -119,6 +101,16 @@ fire.
 
 ## Done
 
+- `[x]` **No-go list + add-by-name favorites** [S+M] — 2026-06-29 (commit
+  78767f8; shipped, owner live-check pending). Symmetric circle-shared
+  per-place flags built together: `nogos` (hard-exclude from discovery +
+  roulette) and `savedPlaces` (favorites — name/hours snapshot per §11.2
+  Q3c, merged into the candidate set so far favorites still appear,
+  go-able-tested; ★ on cards; add-by-name via Text Search on `/add`).
+  Save/Never-show toggles on the detail. Rules + 6 emulator tests (26
+  total). Verified: rules + live add-by-name. Reverses the §1.2 "no
+  favorites" non-goal. Detail: dispatch/nogo-favorites-handoff.md. _NB:
+  Text Search now used → cap SearchTextRequest (above)._
 - `[x]` **App icon — boba panda** [S] — 2026-06-29 (commit bc291f5).
   Owner's art (`assets/icon-source.png`, 2048²) → PWA icon set via
   sips/ImageMagick (no dep): icon-192/512, icon-maskable (512, white
