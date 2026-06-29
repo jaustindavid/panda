@@ -17,9 +17,12 @@ export function AppShell({ children, headerRight }: AppShellProps) {
   return (
     <div className="mx-auto flex h-full max-w-md flex-col bg-slate-950 text-slate-100">
       <header className="flex shrink-0 items-center gap-2 border-b border-slate-800 px-4 py-3">
-        <span className="text-xl" aria-hidden="true">
-          🐼
-        </span>
+        <img
+          src="/icon-192.png"
+          alt=""
+          className="h-6 w-6 rounded"
+          aria-hidden="true"
+        />
         <h1 className="text-lg font-semibold tracking-tight">panda</h1>
         {headerRight != null && <div className="ml-auto">{headerRight}</div>}
       </header>

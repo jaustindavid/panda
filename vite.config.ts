@@ -16,7 +16,7 @@ export default defineConfig({
       // Dev: keep the SW available so installability can be verified with
       // `npm run dev`, not only after a build.
       devOptions: { enabled: true },
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon-48.png', 'apple-touch-icon.png'],
       workbox: {
         // Firebase Auth serves its sign-in handler + iframe from /__/auth/*
         // on the hosting domain. Without this, the SPA navigation fallback
@@ -37,15 +37,12 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         icons: [
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
           {
-            src: 'icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-          },
-          {
-            src: 'icon-maskable.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: 'icon-maskable.png',
+            sizes: '512x512',
+            type: 'image/png',
             purpose: 'maskable',
           },
         ],
