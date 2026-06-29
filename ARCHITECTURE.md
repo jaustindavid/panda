@@ -166,6 +166,10 @@ without discovery context).
 nav. **Post-core shipped:** app icon; **no-go** (`nogos`, excluded from
 ranked) + **add-by-name favorites** (`savedPlaces`, snapshot merged into
 the candidate set; Text Search on `/add`). Routes: `/` · `/place/:id` ·
-`/add` · `/roulette` · `/visits`. Still ahead (BACKLOG): the discovery
-**map view** (needs the Maps JS API console step). This doc grows as they
-land.
+`/add` · `/roulette` · `/visits`. **Discovery map view** — `DiscoveryMap`
+(`@vis.gl/react-google-maps`): a List/Map toggle renders the same `shown`
+set as markers (no extra Nearby Search), lazy-loaded on open; classic Marker
+(AdvancedMarker + Map ID is a backlogged upgrade). **All v1 core + committed
+post-core chambers (favorites, no-go, icon, map) are shipped.** Remaining is
+refinements/FRs in BACKLOG (travel-time, expand-search, drift-detection,
+quota caps, bundle size). This doc grows as they land.

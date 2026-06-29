@@ -19,15 +19,9 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 
 ## Next
 
-**🎉 v1 core complete (M1–M5 + nav).** Post-core chambers — owner picks
-the order.
-
-- `[ ]` **Discovery map view** [S] — the deferred M2 fast-follow: list ⇄
-  map toggle on the discovery home (PRD §7 F1, §9). Needs **Maps
-  JavaScript API** enabled on `panda-bamboo-lane` + added to the Maps key
-  restriction (owner console), and adds the dynamic-map billing SKU.
-  Reuses the same fetched result set (no extra Nearby Search). Pairs with
-  the "search this area" item. _Design: PRD §7 (F1), §9._
+**🎉 v1 core (M1–M5 + nav) AND all committed post-core chambers shipped**
+(map view · favorites · no-go · icon). What remains is refinements + FRs in
+Later — owner picks if/when. Nothing in flight.
 
 ---
 
@@ -83,6 +77,12 @@ fire.
   restricted, so this shrinks a leaked-key blast radius.
   `SearchNearbyRequest` + `GetPlaceRequest` already at 50/day. _Owner
   console; from M1 §7.4._
+- `[ ]` **Map: AdvancedMarker + Map ID** [XS] — the map uses the classic
+  `google.maps.Marker` (no Map ID needed, but logs a deprecation warning).
+  Upgrade to `AdvancedMarker` once a vector **Map ID** is created in the
+  console — removes the warning and allows custom/branded pins (e.g. ★ for
+  favorites). Owner console step + small code swap. _From map view,
+  2026-06-29._
 - `[ ]` **Favorites snapshot refresh / drift-detection** [S] — favorites
   store the hours snapshot from save-time; if a place changes hours it goes
   stale until re-saved. Re-poll a favorite live on a short interval (or on
@@ -107,6 +107,15 @@ fire.
 
 ## Done
 
+- `[x]` **Discovery map view** [S] — 2026-06-29 (commit prior to this).
+  List ⇄ Map toggle on discovery via `@vis.gl/react-google-maps` (owner-
+  approved dep); dark map, a marker per `shown` place + "You", tap a pin →
+  detail; reuses the fetched results (no extra Nearby Search); lazy-loads
+  the Maps JS API on open. Classic Marker (Map-ID-free; AdvancedMarker
+  upgrade backlogged). Plus: ★ Favorites filter + add-by-name polish
+  (strict restaurant filter, addresses, clickable results) shipped same day.
+  Verified live (map loads dark/centered, markers render). _Owner enabled
+  Maps JS API + key restriction._
 - `[x]` **No-go list + add-by-name favorites** [S+M] — 2026-06-29 (commit
   78767f8; shipped, owner live-check pending). Symmetric circle-shared
   per-place flags built together: `nogos` (hard-exclude from discovery +
