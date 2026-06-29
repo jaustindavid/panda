@@ -537,6 +537,28 @@ budget** is the email alert. The split-billing trigger is in §13.3.
     more results means a new call (bigger radius / recenter) or switching
     that query to **Text Search** (paged, supports a type). Keep it
     explicit and quota-aware (50/day). _Later chamber._
+11. **Eatery type coverage — which place types count (owner, 2026-06-29).**
+    Discovery's Nearby Search filtered on `includedTypes: ['restaurant']`,
+    which **misses food places Google doesn't tag `restaurant`** — bagel
+    shops, coffee shops, bakeries. Decision: search **`restaurant` + `cafe` +
+    `bakery`** (Table A searchable types). Guiding examples (owner's
+    "should-be-a-hit" set — `primaryType` · how it's caught): **Ireland's Own
+    / Jägerhaus Pub** `bar_and_grill` · already in via `restaurant`; **Cafe
+    Charlotte** `cafe` · already in via `restaurant`; **Kudu Coffee**
+    `coffee_shop` · needs `cafe`; **Ruby's NY Bagels** `bagel_shop` · needs
+    `bakery`. Verified live: adding `cafe` + `bakery` pulls Kudu, a pâtisserie,
+    and a café into the nearest-20 downtown. **No `bar`** — food-serving pubs
+    already carry `restaurant` (Ireland's Own proves it); a bare `bar` would
+    only add pure bars that don't serve food. **No `meal_takeaway`** — no
+    example needs it. **Living set:** when a should-be-hit is missed, look up
+    its types and extend here. **Ripple — Text Search (add-by-name +
+    genre-scope):** `searchText`'s `includedType` is **singular**, so the
+    multi-type set can't ride in the request; honor the same set by dropping
+    `includedType` / `strictTypeFiltering` and **client-side-filtering** to
+    results whose `types` intersect the set (also a sturdier fix for the
+    "Amalfi returned non-restaurants" leak). Encode the set as one shared
+    constant so both surfaces + this list stay in sync. _Set agreed;
+    implementation pending owner go._
 
 ---
 
