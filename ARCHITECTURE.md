@@ -160,5 +160,9 @@ per app session — fixed the swipe/hardware-back-exits bug). Deep links work
 (firebase.json SPA rewrite + a cold Place Details fetch when a detail opens
 without discovery context).
 
-Still ahead: the discovery **map view** (deferred M2 fast-follow), roulette
-(M5). This doc grows as they land.
+**v1 core complete** — M1 (infra/auth) · M2 (discovery + go-able) · M3
+(detail + notes) · M4 (here-now/visits/overrides) · M5 (roulette,
+`src/roulette/`, plain random over the go-able set) + the router nav, all
+shipped. Post-core chambers ahead (BACKLOG): add-by-name favorites, the
+app icon, the discovery map view, the no-go list. This doc grows as they
+land.

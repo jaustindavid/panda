@@ -19,10 +19,9 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 
 ## Next
 
-Active candidates for the immediate next dispatch (M4 + back-nav done).
+**🎉 v1 core complete (M1–M5 + nav).** Post-core chambers — owner picks
+the order.
 
-- `[~]` **M5 — Roulette** [S] — random pick over the on-screen go-able +
-  filtered set; accept or respin. _Design: PRD §7 (F2)._
 - `[ ]` **Discovery map view** [S] — the deferred M2 fast-follow: list ⇄
   map toggle on the discovery home (PRD §7 F1, §9). Needs **Maps
   JavaScript API** enabled on `panda-bamboo-lane` + added to the Maps key
@@ -42,7 +41,7 @@ Active candidates for the immediate next dispatch (M4 + back-nav done).
 
 ## Soon
 
-(M5 is the last core milestone — now in Next. Post-core chambers in Later.)
+(v1 core all shipped — see Done. Post-core chambers are in Next / Later.)
 
 ---
 
@@ -128,6 +127,13 @@ fire.
 
 ## Done
 
+- `[x]` **M5 — Roulette** [S] — 2026-06-28 (mechanics verified on live data;
+  daytime device spin optional). `/roulette` route (swipe-dismissable);
+  🎲 Spin from discovery; plain uniform random over the **go-able** +
+  genre-filtered set (excludes hours-unknown, PRD §7 F2); light spin
+  animation (candidates via ref → no spurious re-spin on the 60s refresh);
+  Let's-go / Respin / empty state. Provider exposes `shown`. **Completes the
+  v1 core.** Detail: dispatch/M5-roulette-handoff.md.
 - `[x]` **Back-nav fix (router)** [S] — 2026-06-28. Swipe/hardware back was
   exiting the PWA (local-state nav, no History integration). Adopted
   **react-router-dom** (owner-approved): routes / · /place/:placeId ·
