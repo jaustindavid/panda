@@ -20,8 +20,8 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 ## Next
 
 **🎉 v1 core (M1–M5 + nav) AND all committed post-core chambers shipped**
-(map view · favorites · no-go · icon). What remains is refinements + FRs in
-Later — owner picks if/when. Nothing in flight.
+(map view · "search this area" · favorites · no-go · icon). What remains is
+refinements + FRs in Later — owner picks if/when. Nothing in flight.
 
 ---
 
@@ -46,15 +46,16 @@ fire.
   on cards (smaller, no go-able change); (b2) feed travel time into the
   per-place arrival calc. Mind the §8 quota (batch ≤20, cache per
   session). _Design: PRD §11.2 Q9._
-- `[ ]` **Expand search / "search this area"** [M] — get beyond the
-  nearest-20 single Nearby Search. The genre filter is client-side over
-  that set, so a sparse genre shows only what was fetched, not "all pizza
-  open nearby." User-triggered options (keep §8 quota-aware — a new billed
-  call per explicit action, no auto-fanout): a "wider radius" control;
-  Maps-style "search this area" on the panned map (pairs with the map
-  fast-follow); genre-scoped re-search when a tapped genre is sparse.
-  `searchNearby` (New) has no paging → bigger radius / recenter, or switch
-  to Text Search. Owner FR 2026-06-28. _Design: PRD §11.2 Q10._
+- `[~]` **Expand search / "search this area"** — core **shipped**
+  2026-06-29 (commit on `main`): pan the map → a "🔍 Search this area"
+  button (appears once panned >1km from the current results center) re-runs
+  Nearby Search around the new center. One new billed call per explicit tap,
+  no auto-fanout (§8); distance still measured from the user's GPS, "You"
+  marker stays put. _Optional residue (owner picks if wanted): a "wider
+  radius" control; genre-scoped re-search when a tapped genre is sparse (the
+  client-side genre filter still only sees the fetched set). `searchNearby`
+  (New) has no paging → bigger radius / recenter, or switch to Text Search._
+  Owner FR 2026-06-28. _Design: PRD §11.2 Q10._
 - `[ ]` **Visit/saved-place re-hydration pattern** [XS] — ToS-settled
   (§11.2 Q3): store **`placeId` only** for history/saved places; re-hydrate
   the display name via Place Details (`fields=id,displayName`) on render.
@@ -107,6 +108,16 @@ fire.
 
 ## Done
 
+- `[x]` **"Search this area" on the map** [S] — 2026-06-29. Pan the map →
+  a "🔍 Search this area" button (shows once panned >1km from the current
+  results center) re-runs Nearby Search around the new center: one new
+  billed call per explicit tap, no auto-fanout (§8). Search center is now
+  overridable in `DiscoveryProvider` (`searchOverride ?? GPS`); the Nearby
+  effect re-fires on change. Distance still measured from the user's GPS;
+  "You" marker fixed. Map render verified (no regression); pan-and-search
+  gesture owner-verified on-device (synthetic drags don't fire Google's
+  gesture handler). _Remaining residue (wider-radius / genre-scoped
+  re-search) parked in Later. PRD §11.2 Q10._
 - `[x]` **Discovery map view** [S] — 2026-06-29 (commit prior to this).
   List ⇄ Map toggle on discovery via `@vis.gl/react-google-maps` (owner-
   approved dep); dark map, a marker per `shown` place + "You", tap a pin →

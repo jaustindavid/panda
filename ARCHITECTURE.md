@@ -169,7 +169,12 @@ the candidate set; Text Search on `/add`). Routes: `/` · `/place/:id` ·
 `/add` · `/roulette` · `/visits`. **Discovery map view** — `DiscoveryMap`
 (`@vis.gl/react-google-maps`): a List/Map toggle renders the same `shown`
 set as markers (no extra Nearby Search), lazy-loaded on open; classic Marker
-(AdvancedMarker + Map ID is a backlogged upgrade). **All v1 core + committed
-post-core chambers (favorites, no-go, icon, map) are shipped.** Remaining is
-refinements/FRs in BACKLOG (travel-time, expand-search, drift-detection,
-quota caps, bundle size). This doc grows as they land.
+(AdvancedMarker + Map ID is a backlogged upgrade). **"Search this area"** —
+the provider's search center is overridable (`searchOverride ?? GPS`); panning
+the map >1km surfaces a button that re-runs Nearby Search around the new
+center (one billed call per explicit tap, no auto-fanout — §8), the Nearby
+effect keying on `searchCenter`. Distance still measured from the user's GPS.
+**All v1 core + committed post-core chambers (favorites, no-go, icon, map,
+search-this-area) are shipped.** Remaining is refinements/FRs in BACKLOG
+(travel-time, expand-search residue, drift-detection, quota caps, bundle
+size). This doc grows as they land.
