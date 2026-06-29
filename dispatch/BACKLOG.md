@@ -127,8 +127,8 @@ fire.
 
 ## Done
 
-- `[x]` **M5 — Roulette** [S] — 2026-06-28 (mechanics verified on live data;
-  daytime device spin optional). `/roulette` route (swipe-dismissable);
+- `[x]` **M5 — Roulette** [S] — 2026-06-28, **owner-verified** (live spin
+  confirmed on device). `/roulette` route (swipe-dismissable);
   🎲 Spin from discovery; plain uniform random over the **go-able** +
   genre-filtered set (excludes hours-unknown, PRD §7 F2); light spin
   animation (candidates via ref → no spurious re-spin on the 60s refresh);
