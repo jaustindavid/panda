@@ -5,7 +5,9 @@ import { addFavorite, removeFavorite } from '../lib/favorites.ts'
 import { addNoGo, removeNoGo } from '../lib/nogo.ts'
 
 /** Save-as-favorite (★, PRD §7 F8) + never-show/no-go (🚫, F7) toggles.
- *  Both are circle-shared per-place flags any member can set. */
+ *  Both are circle-shared per-place flags any member can set, and **mutually
+ *  exclusive** — saving clears a block and vice versa (enforced atomically in
+ *  the lib; the post-action reloadCircleData refreshes both buttons). */
 export function PlaceActions({
   place,
   onChanged,

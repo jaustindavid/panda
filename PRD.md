@@ -285,7 +285,11 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
 - **F7 — Block (later chamber).** Goal: never see a place again. Steps: on
   any result/detail → tap "never show" → the Place is hard-excluded from
   discovery + roulette for the whole circle. AC: blocked Places never appear
-  in F1 or F2; any member can block or un-block. _Ships post-core (§1.3)._
+  in F1 or F2; any member can block or un-block. **Block and favorite are
+  mutually exclusive** — blocking clears any save and vice versa, enforced
+  atomically (a place is "always include" XOR "always exclude"); this prevents
+  the accidental/prank both-state where no-go would silently win (owner FR,
+  2026-06-29). _Ships post-core (§1.3)._
 - **F8 — Add by name (later chamber; owner FR 2026-06-28).** Goal: keep a
   "not close" favorite in the rotation. Steps: search a restaurant **by
   name** (Places Text Search) → pick it → it's saved (Place ID) for the

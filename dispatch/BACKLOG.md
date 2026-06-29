@@ -94,6 +94,15 @@ fire.
 
 ## Done
 
+- `[x]` **Favorite / no-go mutual exclusion** [XS] — 2026-06-29 (owner FR —
+  "can someone accidentally/prankily mark a favorite as do-not-go?"). The two
+  toggles were independent, so a place could be **both** ★ and 🚫 at once, with
+  no-go silently winning (filtered out of discovery + roulette) — and any
+  member could block another's favorite. Now `addFavorite` / `addNoGo` each
+  **atomically clear the other** (write batch: set one, delete the other), so a
+  place is always-include XOR always-exclude, never both. Cross-member delete
+  is permitted by design (collective lists) — locked in with +2 emulator tests
+  (33 total). Reversible as before. _PRD §7 F7._
 - `[x]` **Eatery type coverage — beyond `restaurant`** [S] — 2026-06-29 (owner
   FR; Ruby's Bagels didn't show). Discovery searched `includedTypes:
   ['restaurant']`, missing food places Google doesn't tag `restaurant` (bagel

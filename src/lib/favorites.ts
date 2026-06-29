@@ -4,13 +4,16 @@ import {
   doc,
   getDocs,
   serverTimestamp,
-  setDoc,
+  writeBatch,
 } from 'firebase/firestore'
 import { auth, db } from './firebase.ts'
 import type { Place } from './places.ts'
 import type { OpeningPeriod } from './goable.ts'
 
 const COLLECTION = 'savedPlaces'
+// Favorite and no-go are mutually exclusive (a place is "always include" XOR
+// "always exclude"): saving clears any block. Keep in sync with nogo.ts.
+const NOGO_COLLECTION = 'nogos'
 
 // A favorite stores a Place snapshot (name + hours + location) — the accepted
 // favorites-only caching step-over (PRD §11.2 Q3c). Renders + go-ability
@@ -49,11 +52,13 @@ export async function loadFavorites(): Promise<Place[]> {
   return snap.docs.map((d) => fromDoc(d.id, d.data() as SavedPlaceDoc))
 }
 
-/** Save a place as a circle favorite (snapshots its name + hours). */
+/** Save a place as a circle favorite (snapshots its name + hours). Atomically
+ *  clears any no-go on the same place — the two lists are mutually exclusive. */
 export async function addFavorite(place: Place): Promise<void> {
   const user = auth.currentUser
   if (user == null) throw new Error('Not signed in')
-  await setDoc(doc(db, COLLECTION, place.id), {
+  const batch = writeBatch(db)
+  batch.set(doc(db, COLLECTION, place.id), {
     name: place.name,
     formattedAddress: place.formattedAddress ?? null,
     location: place.location,
@@ -66,6 +71,8 @@ export async function addFavorite(place: Place): Promise<void> {
     addedAt: serverTimestamp(),
     snapshotAt: serverTimestamp(),
   })
+  batch.delete(doc(db, NOGO_COLLECTION, place.id))
+  await batch.commit()
 }
 
 export async function removeFavorite(placeId: string): Promise<void> {

@@ -190,6 +190,10 @@ describe('nogos — read/create/delete: any member', () => {
     await seed('nogos/p1', nogo)
     await assertSucceeds(deleteDoc(doc(member(), 'nogos/p1')))
   })
+  it("clears another member's block (mutual exclusion: save deletes a block)", async () => {
+    await seed('nogos/p1', { ...nogo, blockedByUid: OTHER_UID })
+    await assertSucceeds(deleteDoc(doc(member(), 'nogos/p1')))
+  })
 })
 
 describe('savedPlaces — read/write: any member', () => {
@@ -204,6 +208,10 @@ describe('savedPlaces — read/write: any member', () => {
   it('allows any member to read + remove a favorite', async () => {
     await seed('savedPlaces/p1', fav)
     await assertSucceeds(getDoc(doc(member(), 'savedPlaces/p1')))
+    await assertSucceeds(deleteDoc(doc(member(), 'savedPlaces/p1')))
+  })
+  it("clears another member's favorite (mutual exclusion: block deletes a save)", async () => {
+    await seed('savedPlaces/p1', { ...fav, addedByUid: OTHER_UID })
     await assertSucceeds(deleteDoc(doc(member(), 'savedPlaces/p1')))
   })
 })
