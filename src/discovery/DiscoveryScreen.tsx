@@ -84,8 +84,10 @@ export function DiscoveryScreen() {
       {view === 'map' && d.coords != null ? (
         <DiscoveryMap
           origin={d.coords}
+          searchCenter={d.searchCenter ?? d.coords}
           places={shown}
           onSelect={(id) => navigate(`/place/${id}`)}
+          onSearchHere={d.searchHere}
         />
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto">

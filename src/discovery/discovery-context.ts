@@ -34,6 +34,13 @@ export interface DiscoveryData {
   setFavoritesOnly: (on: boolean) => void
   nowMs: number
 
+  /** Center the current results are around (user GPS, or a "search this
+   *  area" point). The map centers + compares against this. */
+  searchCenter?: LatLng
+  /** Re-run Nearby Search around a new center ("search this area"). A new
+   *  billed call, user-triggered (PRD §8 / §11.2 Q10). */
+  searchHere: (center: LatLng) => void
+
   /** Find a ranked place by id (for the detail route, no re-fetch). */
   findRanked: (placeId: string) => DiscoveryPlace | undefined
   /** Re-pull overrides + annotations after a detail edits them. */

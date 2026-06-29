@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useGeolocation } from '../hooks/useGeolocation.ts'
 import { searchNearbyRestaurants } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
+import type { LatLng } from '../lib/distance.ts'
 import { availableGenres, rankDiscovery } from '../lib/discovery.ts'
 import { buildAnnotations } from '../lib/annotations.ts'
 import type { PlaceAnnotation } from '../lib/annotations.ts'
@@ -31,21 +32,29 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const [favoritePlaces, setFavoritePlaces] = useState<Place[]>([])
   const [nogoIds, setNogoIds] = useState<Set<string>>(new Set())
   const [circleRefresh, setCircleRefresh] = useState(0)
+  // Override search center for "search this area"; falls back to user GPS.
+  const [searchOverride, setSearchOverride] = useState<LatLng | null>(null)
+  const searchCenter = searchOverride ?? geo.coords
 
-  // One Nearby Search per location fix (PRD §8); async-only setState.
+  // One Nearby Search per search center (user GPS or a "search this area"
+  // point) — a new billed call per explicit recenter (PRD §8 / §11.2 Q10).
   useEffect(() => {
-    if (geo.status !== 'granted' || !geo.coords) return
-    const center = geo.coords
+    if (geo.status !== 'granted' || !searchCenter) return
+    const center = searchCenter
     let cancelled = false
     searchNearbyRestaurants({ apiKey: MAPS_KEY, center })
-      .then((res) => !cancelled && setPlaces(res))
+      .then((res) => {
+        if (cancelled) return
+        setPlaces(res)
+        setFetchError(null) // clear any stale error from a prior search
+      })
       .catch(
         (e) => !cancelled && setFetchError(e instanceof Error ? e.message : String(e)),
       )
     return () => {
       cancelled = true
     }
-  }, [geo.status, geo.coords])
+  }, [geo.status, searchCenter])
 
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 60_000)
@@ -127,6 +136,8 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     favoritesOnly,
     setFavoritesOnly,
     nowMs,
+    searchCenter,
+    searchHere: (center) => setSearchOverride(center),
     findRanked: (placeId) => ranked.find((d) => d.place.id === placeId),
     reloadCircleData: () => setCircleRefresh((r) => r + 1),
   }
