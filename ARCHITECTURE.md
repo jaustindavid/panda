@@ -146,9 +146,13 @@ referrer- and API-restricted (browser-origin only — not callable from Node).
 
 ## 9. What's not here yet
 
-Landed: M1 (infra/auth), M2 (discovery + go-able, §5), **M3 (place detail +
-notes** — `src/place/`, `src/lib/notes.ts`; one-shot reads on the M1 notes
-rules; `authorName` denormalized for attribution; list ⇄ detail via local
-state, no router). Still ahead: the discovery **map view** (deferred M2
-fast-follow), here-now + visits + overrides (M4), roulette (M5). This doc
-grows as they land.
+Landed: M1 (infra/auth), M2 (discovery + go-able, §5), M3 (place detail +
+notes), **M4 (here-now visits + good-time-to-go override + discovery
+annotations** — `src/lib/{visits,overrides,annotations}.ts`,
+`src/place/{PlaceVisits,OverrideControl}.tsx`, `src/visits/VisitsScreen.tsx`;
+on the M1 visits/overrides rules; override feeds `rankDiscovery`; visit
+names re-hydrated via `getPlaceName`, deduped + session-cached). Still
+ahead: **back-nav fix** (swipe/hardware back exits the app — local-state nav
+has no History integration; lightweight wiring vs a router), the discovery
+**map view** (deferred M2 fast-follow), roulette (M5). This doc grows as
+they land.

@@ -19,12 +19,19 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 
 ## Next
 
-Active candidates for the immediate next dispatch (M3 done).
+Active candidates for the immediate next dispatch (M4 done).
 
-- `[›]` **M4 — Here-now + visits + overrides** [M] — **in flight.** One-tap
-  "here now" → shared Visit; recent-visits view; the good-time-to-go
-  override (`closeBufferMin`, F4b) feeding the go-able filter; notes/visit
-  annotations on discovery results. _Design: PRD §5, §6, §7 (F3, F4b, F5)._
+- `[ ]` **Back-nav fix (swipe/hardware back)** [S] — **bug:** in-app nav
+  (list ⇄ detail, Eat ⇄ Visits) uses React state with no History API
+  integration, so a back gesture exits the PWA / leaves the browser page
+  instead of stepping back in-app. Fix approach is an open call:
+  (a) lightweight History API wiring (no dep — pushState on open, popstate
+  to close; fine for the current 2-level nav); (b) adopt a router
+  (react-router-dom — proper back/forward + deep-linkable screens; scales
+  to roulette/favorites/map). Owner FR 2026-06-28; promoted from the M3
+  deferral. _Design: ARCHITECTURE §9._
+- `[~]` **M5 — Roulette** [S] — random pick over the on-screen go-able +
+  filtered set; accept or respin. _Design: PRD §7 (F2)._
 - `[ ]` **Discovery map view** [S] — the deferred M2 fast-follow: list ⇄
   map toggle on the discovery home (PRD §7 F1, §9). Needs **Maps
   JavaScript API** enabled on `panda-bamboo-lane` + added to the Maps key
@@ -44,10 +51,7 @@ Active candidates for the immediate next dispatch (M3 done).
 
 ## Soon
 
-The v1 feature build, smallest-friction-first.
-
-- `[~]` **M5 — Roulette** [S] — random pick over the on-screen go-able +
-  filtered set; accept or respin. _Design: PRD §7 (F2)._
+(M5 is the last core milestone — now in Next. Post-core chambers in Later.)
 
 ---
 
@@ -133,6 +137,15 @@ fire.
 
 ## Done
 
+- `[x]` **M4 — Here-now + visits + overrides** [M] — 2026-06-28,
+  owner-verified. One-tap "I'm here" → Visit (byName denormalized);
+  good-time-to-go override (presets → `closeBufferMin`) feeding the go-able
+  filter via DiscoveryScreen's override map; recent-visits view with place
+  names **re-hydrated** (owner ToS-clean choice §11.2 Q3a, deduped +
+  session-cached); discovery annotations (note count + last visit, pure +
+  tested); Eat ⇄ Visits nav. On the M1 visits/overrides rules (no rules
+  change). 52 unit + 20 rules tests. Known follow-up: back-nav fix (in
+  Next). Detail: dispatch/M4-visits-overrides-handoff.md; ARCHITECTURE §9.
 - `[x]` **M3 — Place detail + notes** [M] — 2026-06-28, owner-verified.
   Tap a discovery result → detail (reuses fetched place, no extra Maps
   call) → shared, attributed notes (add / edit-own / delete-own) on the M1
