@@ -309,12 +309,14 @@ at the **highest SKU any requested field touches**. panda's calls:
   (not free — `displayName` is Pro): 5,000 free/mo, $17/1,000. `id`-only is
   unlimited/free but nameless. **Text Search** (add-by-name) → Pro (5,000
   free/mo) without hours.
-- **⚠️ Daily-cap math:** the 50/day Nearby cap × ~30 = ~1,500 > the 1,000/mo
-  Enterprise free cap → a maxed month bills ~$17.50 worst case. **~33/day
-  (≈990/mo) guarantees $0.** Realistic 4-person use (≈one search per
-  app-open) sits well under either; the $5 budget alert is the backstop.
-  _Owner call: lower the daily cap to ~33 for a hard-free guarantee, or keep
-  50 and accept trivial worst-case spend._
+- **⚠️ Daily-cap vs monthly-free:** GCP quotas are per-day; the free tier is
+  per-month — so a daily cap is only a proxy. Daily Nearby cap is **100**
+  (owner bumped from 50 on 2026-06-29 to keep testing; watching usage).
+  100 × 30 = 3,000/mo worst case ≫ the 1,000/mo Enterprise free cap, so the
+  **$5 budget alert is the real guard during testing**. Steady-state: **~33/
+  day (≈990/mo) guarantees $0**; realistic 4-person use (≈one search per
+  app-open) sits well under 1,000/mo regardless. _Revisit the cap after
+  testing settles._
 
 Design rules that keep us in the free tier:
 
