@@ -66,6 +66,26 @@ describe('rankDiscovery', () => {
   })
 })
 
+describe('rankDiscovery distance cap (100 km upper bound)', () => {
+  // At the equator ~111 km per degree of longitude: 0.5° ≈ 56 km, 1.0° ≈ 111 km.
+  const near = place('near', 0.5, 'pizza_restaurant', open11to22)
+  const far = place('far', 1.0, 'pizza_restaurant', open11to22)
+  const ranked = rankDiscovery({
+    places: [near, far],
+    origin: { latitude: 0, longitude: 0 },
+    nowMs,
+    arrivalOffsetMin: 15,
+  })
+
+  it('keeps a go-able place within 100 km', () => {
+    expect(ranked.map((d) => d.place.id)).toContain('near')
+  })
+
+  it('drops a go-able place beyond 100 km (however open)', () => {
+    expect(ranked.map((d) => d.place.id)).not.toContain('far')
+  })
+})
+
 describe('availableGenres', () => {
   it('returns distinct sorted genres', () => {
     const ranked = rankDiscovery({

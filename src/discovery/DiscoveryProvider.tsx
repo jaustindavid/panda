@@ -4,8 +4,9 @@ import { useGeolocation } from '../hooks/useGeolocation.ts'
 import { searchNearbyRestaurants, searchTextRestaurants } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
 import { computeDriveSeconds } from '../lib/travel.ts'
+import { haversineMeters } from '../lib/distance.ts'
 import type { LatLng } from '../lib/distance.ts'
-import { availableGenres, rankDiscovery } from '../lib/discovery.ts'
+import { availableGenres, MAX_DISTANCE_M, rankDiscovery } from '../lib/discovery.ts'
 import { buildAnnotations } from '../lib/annotations.ts'
 import type { PlaceAnnotation } from '../lib/annotations.ts'
 import { loadOverrideMap } from '../lib/overrides.ts'
@@ -112,6 +113,9 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     const missing: { id: string; location: LatLng }[] = []
     for (const p of [...favoritePlaces, ...extraPlaces, ...(places ?? [])]) {
       if (driveSecondsById[p.id] !== undefined || seen.has(p.id)) continue
+      // Skip places past the distance cap — they're dropped from ranked
+      // anyway, so don't spend a Route Matrix element on them.
+      if (haversineMeters(origin, p.location) > MAX_DISTANCE_M) continue
       seen.add(p.id)
       missing.push({ id: p.id, location: p.location })
       if (missing.length >= 25) break

@@ -83,6 +83,15 @@ fire.
 
 ## Done
 
+- `[x]` **Distance cap on discovery (100 km)** [XS] — 2026-06-29 (owner FR;
+  surfaced by the "wife in SLC" favorites question). `rankDiscovery` drops any
+  candidate whose straight-line distance from the user's GPS exceeds
+  `MAX_DISTANCE_M` (100 km), however go-able — cleanly caps far-flung favorites
+  (home favorites while travelling) instead of relying on the messier
+  travel-gate. The travel effect also skips capped places so no Route Matrix
+  element is spent on them. 2 unit tests (66 total). _Measured from GPS, so a
+  "search this area" pan >100 km away also returns empty — consistent with the
+  bound. PRD §7 F1._
 - `[x]` **Feedback capture** [S] — 2026-06-29 (owner FR). A "Feedback" nav
   link → `/feedback` route: one text box, author **auto-stamped** from sign-in
   (owner chose auto over a typed username; "Posting as {name}"), Send →

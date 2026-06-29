@@ -5,6 +5,13 @@ import type { GoableStatus } from './goable.ts'
 import { genreLabel } from './genre.ts'
 import type { Place } from './places.ts'
 
+/** Hard upper bound on a candidate's straight-line distance from the user.
+ *  Beyond this, even a go-able favorite is dropped — a place 100 km+ away
+ *  isn't a "right now" answer (owner FR: caps far-flung favorites, e.g. home
+ *  favorites while travelling). Measured from the user's GPS, not the search
+ *  center. */
+export const MAX_DISTANCE_M = 100_000
+
 export interface DiscoveryPlace {
   place: Place
   /** 'goable' or 'hours-unknown' — 'not-goable' places are excluded (F1). */
@@ -43,6 +50,10 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
 
   const out: DiscoveryPlace[] = []
   for (const place of places) {
+    // Hard distance cap first (cheap): a place beyond the upper bound is never
+    // a "right now" answer, however go-able — drop it before routing/go-able.
+    const distanceMeters = haversineMeters(origin, place.location)
+    if (distanceMeters > MAX_DISTANCE_M) continue
     // Per-place arrival = chip ("leave in") + drive time. Unknown drive ⇒
     // add 0, i.e. behave as before routing landed (graceful fallback).
     const driveSec = opts.travelSecondsById?.[place.id]
@@ -60,7 +71,7 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
     out.push({
       place,
       status: result.status,
-      distanceMeters: haversineMeters(origin, place.location),
+      distanceMeters,
       travelSeconds: driveSec ?? undefined,
       genre: genreLabel(place),
       overrideZeroedOut: result.overrideZeroedOut,

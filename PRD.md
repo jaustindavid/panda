@@ -75,8 +75,9 @@ Tracked in BACKLOG.md once the kit scaffolding lands.
 - **Add restaurants by name (saved favorites)** _(owner FR 2026-06-28)_ —
   a circle-shared, **per-place** saved set: search a place **by name**
   (Places **Text Search**, a new surface) → store its **Place ID** → it
-  joins discovery + roulette **regardless of proximity**, so "not close"
-  favorites stay in the rotation. The symmetric twin of the no-go list
+  joins discovery + roulette **regardless of proximity** (up to the 100 km
+  distance cap, §7 F1), so "not close" favorites stay in the rotation. The
+  symmetric twin of the no-go list
   (NoGo = always-hide; SavedPlace = always-include). Per ToS, store only
   the Place ID; re-hydrate name/hours via Place Details each load (mind the
   `GetPlaceRequest` 50/day cap × N favorites). Schema sketched in §5; pairs
@@ -254,9 +255,12 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   supersedes Maps hours, and KITCHEN secondary hours tighten the close only
   when present and no override exists; places with no Maps hours show as
   **hours-unknown** (non-actionable badge; not auto-excluded); each result
-  shows circle notes count + last visit if any. **Chip re-filtering runs
-  client-side over the single fetched result set — no new billed Maps call
-  per tap (see §8).**
+  shows circle notes count + last visit if any. Candidates beyond a **100 km
+  straight-line distance cap** from the user are dropped however go-able — a
+  place that far isn't a "right now" answer; this also caps far-flung
+  favorites (e.g. home favorites while travelling). _Owner FR 2026-06-29
+  (`MAX_DISTANCE_M`)._ **Chip re-filtering runs client-side over the single
+  fetched result set — no new billed Maps call per tap (see §8).**
 - **F2 — Roulette.** Goal: pick for me. Steps: from filtered set → spin →
   one result → accept or respin. AC: pick is always within the current
   go-able + filtered set.
@@ -285,10 +289,11 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
 - **F8 — Add by name (later chamber; owner FR 2026-06-28).** Goal: keep a
   "not close" favorite in the rotation. Steps: search a restaurant **by
   name** (Places Text Search) → pick it → it's saved (Place ID) for the
-  whole circle and joins discovery + roulette regardless of distance. AC:
-  saved places appear in F1/F2 even when far (still subject to the go-able
-  test on their own hours); any member can add or remove; stores only the
-  Place ID, name/hours re-hydrated on display. _Ships post-core (§1.3)._
+  whole circle and joins discovery + roulette regardless of distance (up to
+  the 100 km cap, §7 F1). AC: saved places appear in F1/F2 even when far
+  (subject to the go-able test on their own hours AND the 100 km distance
+  cap); any member can add or remove; stores only the Place ID, name/hours
+  re-hydrated on display. _Ships post-core (§1.3)._
 
 Google Maps Platform is the only metered dependency, and **opening-hours
 fields force the Enterprise SKU** — so the constrained resource is the

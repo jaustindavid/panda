@@ -15,7 +15,8 @@ const COLLECTION = 'savedPlaces'
 // A favorite stores a Place snapshot (name + hours + location) — the accepted
 // favorites-only caching step-over (PRD §11.2 Q3c). Renders + go-ability
 // without a per-load Maps call; a far "not close" favorite still joins
-// discovery/roulette regardless of proximity (PRD §7 F8).
+// discovery/roulette regardless of proximity, up to the 100 km distance cap
+// (MAX_DISTANCE_M in discovery.ts; PRD §7 F1/F8).
 interface SavedPlaceDoc {
   name: string
   formattedAddress?: string | null
