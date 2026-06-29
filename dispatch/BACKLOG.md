@@ -19,11 +19,12 @@ Status: `[ ]` not started · `[~]` design captured · `[›]` in flight ·
 
 ## Next
 
-Active candidates for the immediate next dispatch (M2 done; pick one).
+Active candidates for the immediate next dispatch (M3 done).
 
-- `[~]` **M3 — Place detail + notes** [M] — place detail view; shared,
-  attributed notes (read / write / edit-own / delete-own). Next milestone
-  in sequence. _Design: PRD §5, §6, §7 (F4)._
+- `[›]` **M4 — Here-now + visits + overrides** [M] — **in flight.** One-tap
+  "here now" → shared Visit; recent-visits view; the good-time-to-go
+  override (`closeBufferMin`, F4b) feeding the go-able filter; notes/visit
+  annotations on discovery results. _Design: PRD §5, §6, §7 (F3, F4b, F5)._
 - `[ ]` **Discovery map view** [S] — the deferred M2 fast-follow: list ⇄
   map toggle on the discovery home (PRD §7 F1, §9). Needs **Maps
   JavaScript API** enabled on `panda-bamboo-lane` + added to the Maps key
@@ -45,11 +46,6 @@ Active candidates for the immediate next dispatch (M2 done; pick one).
 
 The v1 feature build, smallest-friction-first.
 
-- `[~]` **M4 — Here-now + visits + overrides** [M] — one-tap "here now"
-  → shared Visit; recent-visits view; the good-time-to-go override
-  (`closeBufferMin`, F4b) feeding the go-able filter; notes/visit
-  annotations on discovery results. _Design: PRD §5, §6, §7 (F3, F4b,
-  F5)._
 - `[~]` **M5 — Roulette** [S] — random pick over the on-screen go-able +
   filtered set; accept or respin. _Design: PRD §7 (F2)._
 
@@ -137,6 +133,14 @@ fire.
 
 ## Done
 
+- `[x]` **M3 — Place detail + notes** [M] — 2026-06-28, owner-verified.
+  Tap a discovery result → detail (reuses fetched place, no extra Maps
+  call) → shared, attributed notes (add / edit-own / delete-own) on the M1
+  notes rules. One-shot reads, client-sorted (no index/listener);
+  `authorName` denormalized for attribution (PRD §5); list ⇄ detail via
+  local state (no router). 47 unit tests; UI verified via mock-geo harness
+  (nav + notes chrome + graceful permission-denied) + owner live check.
+  Detail: dispatch/M3-detail-notes-handoff.md; ARCHITECTURE §9.
 - `[x]` **M2 — Discovery core + go-able** [L] — 2026-06-28, owner-verified
   on live data. Geolocation → one Nearby Search (Places API New,
   restaurants nearest-first, Enterprise hours field mask, no Atmosphere

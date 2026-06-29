@@ -146,7 +146,9 @@ referrer- and API-restricted (browser-origin only — not callable from Node).
 
 ## 9. What's not here yet
 
-Landed: M1 (infra/auth), M2 (discovery + go-able, §5). Still ahead: the
-discovery **map view** (deferred M2 fast-follow), place detail + notes
-(M3), here-now + visits + overrides (M4), roulette (M5). This doc grows as
-they land.
+Landed: M1 (infra/auth), M2 (discovery + go-able, §5), **M3 (place detail +
+notes** — `src/place/`, `src/lib/notes.ts`; one-shot reads on the M1 notes
+rules; `authorName` denormalized for attribution; list ⇄ detail via local
+state, no router). Still ahead: the discovery **map view** (deferred M2
+fast-follow), here-now + visits + overrides (M4), roulette (M5). This doc
+grows as they land.
