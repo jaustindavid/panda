@@ -9,6 +9,8 @@ import type { PlaceAnnotation } from '../lib/annotations.ts'
 import { loadOverrideMap } from '../lib/overrides.ts'
 import { listAllNotes } from '../lib/notes.ts'
 import { listVisits } from '../lib/visits.ts'
+import { loadNoGoIds } from '../lib/nogo.ts'
+import { loadFavorites } from '../lib/favorites.ts'
 import { DiscoveryContext } from './discovery-context.ts'
 import type { DiscoveryData } from './discovery-context.ts'
 
@@ -25,6 +27,8 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [overrides, setOverrides] = useState<Record<string, number>>({})
   const [annotations, setAnnotations] = useState<Record<string, PlaceAnnotation>>({})
+  const [favoritePlaces, setFavoritePlaces] = useState<Place[]>([])
+  const [nogoIds, setNogoIds] = useState<Set<string>>(new Set())
   const [circleRefresh, setCircleRefresh] = useState(0)
 
   // One Nearby Search per location fix (PRD §8); async-only setState.
@@ -50,11 +54,19 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   // Circle's own data (cheap). Best-effort: a failure just unbadges cards.
   useEffect(() => {
     let cancelled = false
-    Promise.all([loadOverrideMap(), listAllNotes(), listVisits()])
-      .then(([ov, notes, visits]) => {
+    Promise.all([
+      loadOverrideMap(),
+      listAllNotes(),
+      listVisits(),
+      loadNoGoIds(),
+      loadFavorites(),
+    ])
+      .then(([ov, notes, visits, nogos, favs]) => {
         if (cancelled) return
         setOverrides(ov)
         setAnnotations(buildAnnotations(notes, visits))
+        setNogoIds(nogos)
+        setFavoritePlaces(favs)
       })
       .catch(() => undefined)
     return () => {
@@ -63,15 +75,27 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   }, [circleRefresh])
 
   const ranked = useMemo(() => {
-    if (!places || !geo.coords) return []
-    return rankDiscovery({
-      places,
+    if (!geo.coords) return []
+    // Merge nearby results with saved favorites (so far favorites still
+    // appear), preferring fresh nearby data on overlap. Then go-able-rank,
+    // then drop blocked (no-go) places.
+    const byId = new Map<string, Place>()
+    for (const fp of favoritePlaces) byId.set(fp.id, fp)
+    for (const p of places ?? []) byId.set(p.id, p)
+    const r = rankDiscovery({
+      places: [...byId.values()],
       origin: geo.coords,
       nowMs,
       arrivalOffsetMin: offset,
       overrides,
     })
-  }, [places, geo.coords, nowMs, offset, overrides])
+    return r.filter((d) => !nogoIds.has(d.place.id))
+  }, [places, favoritePlaces, nogoIds, geo.coords, nowMs, offset, overrides])
+
+  const favoriteIds = useMemo(
+    () => new Set(favoritePlaces.map((p) => p.id)),
+    [favoritePlaces],
+  )
 
   const genres = useMemo(() => availableGenres(ranked), [ranked])
   const shown = useMemo(
@@ -91,6 +115,8 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     genres,
     annotations,
     overrides,
+    favoriteIds,
+    nogoIds,
     offset,
     setOffset,
     genre,

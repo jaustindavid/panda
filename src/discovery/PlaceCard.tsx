@@ -6,14 +6,21 @@ import { formatRelative } from '../lib/time.ts'
 interface PlaceCardProps {
   item: DiscoveryPlace
   annotation?: PlaceAnnotation
+  isFavorite?: boolean
   /** Passed from the parent (never Date.now() in render). */
   nowMs: number
   onSelect: (item: DiscoveryPlace) => void
 }
 
-/** One discovery result; tap to open detail. Shows circle annotations — note
- *  count + last visit (PRD §7 F1) — when present. */
-export function PlaceCard({ item, annotation, nowMs, onSelect }: PlaceCardProps) {
+/** One discovery result; tap to open detail. Shows a ★ for saved favorites
+ *  and circle annotations — note count + last visit (PRD §7 F1). */
+export function PlaceCard({
+  item,
+  annotation,
+  isFavorite,
+  nowMs,
+  onSelect,
+}: PlaceCardProps) {
   const unknown = item.status === 'hours-unknown'
   const noteCount = annotation?.noteCount ?? 0
   const lastVisitAt = annotation?.lastVisitAt ?? null
@@ -30,7 +37,10 @@ export function PlaceCard({ item, annotation, nowMs, onSelect }: PlaceCardProps)
         className="flex w-full items-center justify-between gap-3 rounded-xl bg-slate-900 px-4 py-3 text-left"
       >
         <span className="min-w-0">
-          <span className="block truncate font-medium">{item.place.name}</span>
+          <span className="block truncate font-medium">
+            {isFavorite && <span className="text-amber-300">★ </span>}
+            {item.place.name}
+          </span>
           <span className="block truncate text-sm text-slate-400">
             {item.genre} · {formatDistance(item.distanceMeters)}
           </span>

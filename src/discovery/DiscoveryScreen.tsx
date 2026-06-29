@@ -47,6 +47,13 @@ export function DiscoveryScreen() {
     <div className="flex h-full flex-col gap-3">
       <WhenChips value={d.offset} onChange={d.setOffset} arrivalLabel={arrivalLabel} />
       <GenreFilter genres={d.genres} selected={d.genre} onSelect={d.setGenre} />
+      <button
+        type="button"
+        onClick={() => navigate('/add')}
+        className="self-start text-sm text-slate-400"
+      >
+        ＋ Add a favorite by name
+      </button>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {d.loading && <Centered>Looking for places…</Centered>}
@@ -66,6 +73,7 @@ export function DiscoveryScreen() {
                 key={item.place.id}
                 item={item}
                 annotation={d.annotations[item.place.id]}
+                isFavorite={d.favoriteIds.has(item.place.id)}
                 nowMs={d.nowMs}
                 onSelect={(i) => navigate(`/place/${i.place.id}`)}
               />

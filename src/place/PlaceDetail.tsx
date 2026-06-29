@@ -1,18 +1,19 @@
 import { formatDistance } from '../lib/distance.ts'
 import type { GoableStatus } from '../lib/goable.ts'
+import type { Place } from '../lib/places.ts'
+import { PlaceActions } from './PlaceActions.tsx'
 import { PlaceVisits } from './PlaceVisits.tsx'
 import { OverrideControl } from './OverrideControl.tsx'
 import { NotesSection } from './NotesSection.tsx'
 
 interface PlaceDetailProps {
-  placeId: string
-  name: string
+  place: Place
   genre: string
   /** Null when opened cold (deep link) without a known user location. */
   distanceMeters: number | null
   status: GoableStatus
   onBack: () => void
-  /** Called after a visit/override/note change so discovery can re-pull. */
+  /** Called after any change so discovery can re-pull. */
   onChanged?: () => void
 }
 
@@ -38,11 +39,10 @@ function StatusBadge({ status }: { status: GoableStatus }) {
   )
 }
 
-/** Place detail (PRD §7 F4/F4b/F3): basics + here-now visits, the
- *  good-time-to-go override, and the circle's shared notes. */
+/** Place detail (PRD §7 F3/F4/F4b/F7/F8): basics + save/block actions,
+ *  here-now visits, the good-time-to-go override, and shared notes. */
 export function PlaceDetail({
-  placeId,
-  name,
+  place,
   genre,
   distanceMeters,
   status,
@@ -61,7 +61,7 @@ export function PlaceDetail({
 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold">{name}</h1>
+          <h1 className="text-xl font-semibold">{place.name}</h1>
           <p className="text-sm text-slate-400">
             {genre}
             {distanceMeters != null && ` · ${formatDistance(distanceMeters)}`}
@@ -70,10 +70,12 @@ export function PlaceDetail({
         <StatusBadge status={status} />
       </div>
 
+      <PlaceActions place={place} onChanged={onChanged} />
+
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
-        <PlaceVisits placeId={placeId} onChanged={onChanged} />
-        <OverrideControl placeId={placeId} onChanged={onChanged} />
-        <NotesSection placeId={placeId} onChanged={onChanged} />
+        <PlaceVisits placeId={place.id} onChanged={onChanged} />
+        <OverrideControl placeId={place.id} onChanged={onChanged} />
+        <NotesSection placeId={place.id} onChanged={onChanged} />
       </div>
     </div>
   )

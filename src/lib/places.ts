@@ -152,6 +152,40 @@ export async function getPlaceDetails(
   return mapPlace((await res.json()) as RawPlace)
 }
 
+/**
+ * Find restaurants by name (Text Search, New) for add-by-name favorites
+ * (PRD §7 F8). `bias` ranks nearby matches first but does NOT restrict —
+ * "not close" favorites are the whole point. User-triggered (one call per
+ * submitted search).
+ */
+export async function searchTextRestaurants(
+  query: string,
+  apiKey: string,
+  bias?: LatLng,
+): Promise<Place[]> {
+  const body: Record<string, unknown> = {
+    textQuery: query,
+    includedType: 'restaurant',
+    maxResultCount: 8,
+  }
+  if (bias) body.locationBias = { circle: { center: bias, radius: 50_000 } }
+  const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': FIELD_MASK,
+    },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '')
+    throw new Error(`Places searchText failed (${res.status}): ${detail}`)
+  }
+  const data = (await res.json()) as RawResponse
+  return (data.places ?? []).map(mapPlace)
+}
+
 function mapPlace(raw: RawPlace): Place {
   const kitchen = raw.regularSecondaryOpeningHours?.find(
     (h) => h.secondaryHoursType === 'KITCHEN',

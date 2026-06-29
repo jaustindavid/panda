@@ -20,6 +20,10 @@ export interface DiscoveryData {
   genres: string[]
   annotations: Record<string, PlaceAnnotation>
   overrides: Record<string, number>
+  /** Saved-favorite Place IDs (★ badge + detail toggle). */
+  favoriteIds: Set<string>
+  /** Blocked Place IDs (detail toggle; already excluded from ranked). */
+  nogoIds: Set<string>
 
   offset: number
   setOffset: (minutes: number) => void

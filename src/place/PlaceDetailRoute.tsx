@@ -45,8 +45,7 @@ export function PlaceDetailRoute() {
   if (fromList != null) {
     return (
       <PlaceDetail
-        placeId={fromList.place.id}
-        name={fromList.place.name}
+        place={fromList.place}
         genre={fromList.genre}
         distanceMeters={fromList.distanceMeters}
         status={fromList.status}
@@ -84,8 +83,7 @@ export function PlaceDetailRoute() {
 
   return (
     <PlaceDetail
-      placeId={fetched.id}
-      name={fetched.name}
+      place={fetched}
       genre={genreLabel(fetched)}
       distanceMeters={distance}
       status={status}

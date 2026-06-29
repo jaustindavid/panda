@@ -56,8 +56,23 @@ service cloud.firestore {
       allow write: if isMember();
     }
 
-    // Everything else (incl. NoGo, a later chamber) is denied. Unmatched
-    // paths default-deny; this is the explicit baseline.
+    // NoGo — circle-shared per-place block. read/create/delete: any member
+    // (collective; not author-locked). Doc id = placeId.
+    match /nogos/{placeId} {
+      allow read: if isMember();
+      allow create, delete: if isMember();
+    }
+
+    // SavedPlace (favorite) — circle-shared per-place include. read/write:
+    // any member. Doc id = placeId. Carries a name/hours snapshot (the
+    // accepted favorites-only caching step-over, PRD §11.2 Q3c).
+    match /savedPlaces/{placeId} {
+      allow read: if isMember();
+      allow write: if isMember();
+    }
+
+    // Everything else is denied. Unmatched paths default-deny; this is the
+    // explicit baseline.
     match /{document=**} {
       allow read, write: if false;
     }

@@ -177,11 +177,41 @@ describe('overrides — read/write: any member', () => {
   })
 })
 
-describe('deny baseline (NoGo + unmatched paths)', () => {
-  it('denies reading a not-yet-modeled collection (nogo)', async () => {
-    await assertFails(getDoc(doc(member(), 'nogo/p1')))
-  })
+describe('nogos — read/create/delete: any member', () => {
+  const nogo = { blockedByUid: MEMBER_UID, blockedAt: 1000 }
 
+  it('allows any member to block a place', async () => {
+    await assertSucceeds(setDoc(doc(member(), 'nogos/p1'), nogo))
+  })
+  it('denies a non-member blocking', async () => {
+    await assertFails(setDoc(doc(stranger(), 'nogos/p1'), nogo))
+  })
+  it('allows any member to un-block (delete)', async () => {
+    await seed('nogos/p1', nogo)
+    await assertSucceeds(deleteDoc(doc(member(), 'nogos/p1')))
+  })
+})
+
+describe('savedPlaces — read/write: any member', () => {
+  const fav = { name: 'Baroni’s', addedByUid: MEMBER_UID, addedAt: 1000 }
+
+  it('allows any member to save a favorite', async () => {
+    await assertSucceeds(setDoc(doc(member(), 'savedPlaces/p1'), fav))
+  })
+  it('denies a non-member saving', async () => {
+    await assertFails(setDoc(doc(stranger(), 'savedPlaces/p1'), fav))
+  })
+  it('allows any member to read + remove a favorite', async () => {
+    await seed('savedPlaces/p1', fav)
+    await assertSucceeds(getDoc(doc(member(), 'savedPlaces/p1')))
+    await assertSucceeds(deleteDoc(doc(member(), 'savedPlaces/p1')))
+  })
+})
+
+describe('deny baseline (unmatched paths)', () => {
+  it('denies reading an unmatched collection', async () => {
+    await assertFails(getDoc(doc(member(), 'random/p1')))
+  })
   it('denies writing an arbitrary collection', async () => {
     await assertFails(setDoc(doc(member(), 'whatever/x'), { a: 1 }))
   })
