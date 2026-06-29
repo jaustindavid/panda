@@ -56,11 +56,6 @@ fire.
   client-side genre filter still only sees the fetched set). `searchNearby`
   (New) has no paging → bigger radius / recenter, or switch to Text Search._
   Owner FR 2026-06-28. _Design: PRD §11.2 Q10._
-- `[ ]` **Visit/saved-place re-hydration pattern** [XS] — ToS-settled
-  (§11.2 Q3): store **`placeId` only** for history/saved places; re-hydrate
-  the display name via Place Details (`fields=id,displayName`) on render.
-  No `{placeId,name}` durable snapshot. Bake this into M3/M4. _Supersedes
-  the old "{placeId,name} snapshot" item._
 - `[~]` **Aggressive restaurant-list caching — NOT VIABLE** [killed] —
   fact-finder (2026-06-28) confirmed Maps ToS §3.2.3 forbids caching
   content (hours/name/types). Monthly-poll-and-cache is out. The compliant
@@ -108,6 +103,20 @@ fire.
 
 ## Done
 
+- `[x]` **A11y: single `<h1>` per route + brand → home link** [XS] —
+  2026-06-29. The persistent header brand (icon + "panda") was an `<h1>`, so
+  detail/add screens (which add their own `<h1>`) had two. Brand is now a
+  **home `<Link>`** (banner nav, not a heading — tapping the icon/wordmark
+  returns to `/`); each route owns exactly one `<h1>` (detail = place name,
+  add = "Add a favorite", home/visits/roulette got sr-only titles). Preserves
+  detail's `h1 → h2` section nesting. _From the a11y nit, owner FR._
+- `[x]` **Visit/saved-place re-hydration pattern** [XS] — 2026-06-29
+  (resolved, shipped earlier). Visits store **`placeId` only** and re-hydrate
+  names via Place Details (`fields=id,displayName`, session-cached) — landed
+  in M4 (`getPlaceName`, `VisitsScreen`). Saved places (favorites)
+  deliberately use the approved name/hours **snapshot** instead (§11.2 Q3c,
+  the one bounded ToS step-over), not re-hydration. Either way no outstanding
+  work. _ToS §11.2 Q3._
 - `[x]` **"Search this area" on the map** [S] — 2026-06-29. Pan the map →
   a "🔍 Search this area" button (shows once panned >1km from the current
   results center) re-runs Nearby Search around the new center: one new

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { listVisits } from '../lib/visits.ts'
 import type { Visit } from '../lib/visits.ts'
 import { getPlaceName } from '../lib/places.ts'
@@ -33,33 +34,39 @@ export function VisitsScreen() {
     }
   }, [])
 
+  let body: ReactNode
   if (error != null) {
-    return <p className="p-4 text-sm text-red-400">{error}</p>
-  }
-  if (visits == null) {
-    return <p className="p-4 text-sm text-slate-500">Loading visits…</p>
-  }
-  if (visits.length === 0) {
-    return (
+    body = <p className="p-4 text-sm text-red-400">{error}</p>
+  } else if (visits == null) {
+    body = <p className="p-4 text-sm text-slate-500">Loading visits…</p>
+  } else if (visits.length === 0) {
+    body = (
       <p className="p-4 text-sm text-slate-500">
         No visits yet. Tap “I'm here” on a place to log one.
       </p>
     )
+  } else {
+    body = (
+      <ul className="flex flex-col gap-2">
+        {visits.map((v) => (
+          <li key={v.id} className="rounded-xl bg-slate-900 px-4 py-3">
+            <p className="text-sm">
+              <span className="font-medium">{v.byName}</span>
+              <span className="text-slate-400"> · {names[v.placeId] ?? '…'}</span>
+            </p>
+            {v.at != null && (
+              <p className="text-xs text-slate-500">{formatRelative(v.at, nowMs)}</p>
+            )}
+          </li>
+        ))}
+      </ul>
+    )
   }
 
   return (
-    <ul className="flex flex-col gap-2">
-      {visits.map((v) => (
-        <li key={v.id} className="rounded-xl bg-slate-900 px-4 py-3">
-          <p className="text-sm">
-            <span className="font-medium">{v.byName}</span>
-            <span className="text-slate-400"> · {names[v.placeId] ?? '…'}</span>
-          </p>
-          {v.at != null && (
-            <p className="text-xs text-slate-500">{formatRelative(v.at, nowMs)}</p>
-          )}
-        </li>
-      ))}
-    </ul>
+    <>
+      <h1 className="sr-only">Recent visits</h1>
+      {body}
+    </>
   )
 }

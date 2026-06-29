@@ -48,6 +48,7 @@ export function DiscoveryScreen() {
 
   return (
     <div className="flex h-full flex-col gap-3">
+      <h1 className="sr-only">Find a place to eat</h1>
       <WhenChips value={d.offset} onChange={d.setOffset} arrivalLabel={arrivalLabel} />
       <GenreFilter genres={d.genres} selected={d.genre} onSelect={d.setGenre} />
       <div className="flex items-center gap-3 text-sm">

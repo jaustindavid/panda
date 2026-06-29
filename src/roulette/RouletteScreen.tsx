@@ -52,6 +52,7 @@ export function RouletteScreen() {
 
   return (
     <div className="flex h-full flex-col gap-4">
+      <h1 className="sr-only">Roulette</h1>
       <button
         type="button"
         onClick={() => navigate(-1)}
