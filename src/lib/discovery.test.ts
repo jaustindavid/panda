@@ -138,4 +138,17 @@ describe('rankDiscovery travel time (Q9)', () => {
     expect(r[0].status).toBe('green')
     expect(r[0].travelSeconds).toBeUndefined()
   })
+
+  it('target mode (includeDriveInArrival false): drive not in band, still shown', () => {
+    // 90-min drive would push arrival to 18:30 (yellow) in chip mode; in target
+    // mode the clock time IS arrival (17:00 → green), but drive stays annotated.
+    const r = rankDiscovery({
+      ...base,
+      arrivalOffsetMin: 0,
+      travelSecondsById: { p: 90 * 60 },
+      includeDriveInArrival: false,
+    })
+    expect(r[0].status).toBe('green')
+    expect(r[0].travelSeconds).toBe(5400)
+  })
 })

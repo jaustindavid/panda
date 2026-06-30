@@ -36,6 +36,10 @@ export interface RankOptions {
    *  offset for that place's arrival; absent/null ⇒ chip-only (graceful
    *  fallback when routing is unavailable). */
   travelSecondsById?: Record<string, number | null>
+  /** Default true (relative chips: arrival = chip + drive). False for the
+   *  "meal at <time>" absolute target — the clock time IS the arrival, drive
+   *  isn't added (you'll leave in time); drive stays annotated for display. */
+  includeDriveInArrival?: boolean
 }
 
 /**
@@ -54,9 +58,11 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
     const distanceMeters = haversineMeters(origin, place.location)
     if (distanceMeters > MAX_DISTANCE_M) continue
     // Per-place arrival = chip ("leave in") + drive time. Unknown drive ⇒
-    // add 0, i.e. behave as before routing landed (graceful fallback).
+    // add 0 (graceful fallback). Target "meal at…" mode adds 0 too (the clock
+    // time is the arrival), but still annotates travelSeconds below.
     const driveSec = opts.travelSecondsById?.[place.id]
-    const travelMin = driveSec != null ? Math.round(driveSec / 60) : 0
+    const addDrive = opts.includeDriveInArrival !== false
+    const travelMin = addDrive && driveSec != null ? Math.round(driveSec / 60) : 0
     const result = evaluateGoable({
       periods: place.periods,
       kitchenPeriods: place.kitchenPeriods,

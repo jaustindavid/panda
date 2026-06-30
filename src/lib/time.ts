@@ -8,6 +8,15 @@ export function formatClock(epochMs: number): string {
   return `${h}:${m}`
 }
 
+/** "h:mm" for a minutes-since-midnight value (the "meal at…" target arrival),
+ *  same 12-hour, no-am/pm style as formatClock. */
+export function formatMinOfDay(min: number): string {
+  const h24 = Math.floor(min / 60) % 24
+  const h = h24 % 12 === 0 ? 12 : h24 % 12
+  const m = (min % 60).toString().padStart(2, '0')
+  return `${h}:${m}`
+}
+
 /** Approximate drive time for a card: "~5 min" / "~45 min" / "~1 h 10 min".
  *  Rounds to whole minutes (min "~1 min"); the "~" reflects no live traffic. */
 export function formatDriveTime(seconds: number): string {

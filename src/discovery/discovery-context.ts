@@ -25,8 +25,13 @@ export interface DiscoveryData {
   /** Blocked Place IDs (detail toggle; already excluded from ranked). */
   nogoIds: Set<string>
 
+  /** The "leave in" chip offset (minutes); setOffset also exits target mode. */
   offset: number
   setOffset: (minutes: number) => void
+  /** "Meal at <time>" absolute arrival as minutes-since-midnight, or null for
+   *  the relative chips. When set it overrides the chip + drive stops gating. */
+  targetMinOfDay: number | null
+  setTargetArrival: (minOfDay: number | null) => void
   genre: string | null
   setGenre: (genre: string | null) => void
   /** Restrict the list (and roulette) to saved favorites. */

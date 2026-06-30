@@ -23,6 +23,16 @@ const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 // Search (New) max. Each step is a new billed Nearby call (PRD §8 / §11.2 Q10).
 const RADIUS_TIERS = [5_000, 15_000, 50_000]
 
+/** Minutes from `nowMs` (device-local) to the next occurrence of a
+ *  minutes-since-midnight target — today if still ahead, else tomorrow. For
+ *  the "meal at <time>" absolute-arrival control (PRD §11.2 Q9 follow-on). */
+function minutesUntilTarget(targetMinOfDay: number, nowMs: number): number {
+  const d = new Date(nowMs)
+  const nowMin = d.getHours() * 60 + d.getMinutes()
+  const diff = targetMinOfDay - nowMin
+  return diff < 0 ? diff + 1440 : diff
+}
+
 /** Holds discovery data for the whole signed-in session (above the routes),
  *  so list ⇄ detail ⇄ visits navigation never re-runs the Nearby Search. */
 export function DiscoveryProvider({ children }: { children: ReactNode }) {
@@ -30,6 +40,10 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const [places, setPlaces] = useState<Place[] | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [offset, setOffset] = useState(15) // default +15 (PRD §3)
+  // "Meal at <time>": absolute target arrival as minutes-since-midnight, or
+  // null for the relative chips. When set, it overrides the chip and drive
+  // time stops gating (the clock time is the arrival).
+  const [targetMinOfDay, setTargetMinOfDay] = useState<number | null>(null)
   const [genre, setGenre] = useState<string | null>(null)
   const [favoritesOnly, setFavoritesOnly] = useState(false)
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -146,11 +160,15 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     for (const fp of favoritePlaces) byId.set(fp.id, fp)
     for (const ep of extraPlaces) byId.set(ep.id, ep)
     for (const p of places ?? []) byId.set(p.id, p)
+    // "Meal at <time>" overrides the chip: arrival = the target clock, and
+    // drive stops gating (you'll leave in time). Else relative chip + drive.
+    const inTarget = targetMinOfDay != null
     const r = rankDiscovery({
       places: [...byId.values()],
       origin: geo.coords,
       nowMs,
-      arrivalOffsetMin: offset,
+      arrivalOffsetMin: inTarget ? minutesUntilTarget(targetMinOfDay, nowMs) : offset,
+      includeDriveInArrival: !inTarget,
       overrides,
       travelSecondsById: driveSecondsById,
     })
@@ -163,6 +181,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     geo.coords,
     nowMs,
     offset,
+    targetMinOfDay,
     overrides,
     driveSecondsById,
   ])
@@ -204,6 +223,12 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       .finally(() => setExpanding(false))
   }
 
+  // Selecting a relative chip exits "meal at <time>" mode.
+  const chooseOffset = (min: number) => {
+    setOffset(min)
+    setTargetMinOfDay(null)
+  }
+
   const value: DiscoveryData = {
     geoStatus: geo.status,
     geoMessage: geo.message,
@@ -219,7 +244,9 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     favoriteIds,
     nogoIds,
     offset,
-    setOffset,
+    setOffset: chooseOffset,
+    targetMinOfDay,
+    setTargetArrival: setTargetMinOfDay,
     genre,
     setGenre,
     favoritesOnly,

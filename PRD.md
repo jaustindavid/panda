@@ -137,7 +137,11 @@ meal-duration; brand/category-level blocking (if per-place proves tedious).
   **Now / +15 / +30 / +60** chips (default **+15**). The chip is a **departure
   buffer**; true arrival is per-place — `arrival(place) = now + n +
   travel(place)` (Routes drive time, **shipped** 2026-06-29, §11.2 Q9) — so a
-  place 30 min away is tested 30 min later than a next-door one.
+  place 30 min away is tested 30 min later than a next-door one. **Or an
+  absolute "Arrive at <time>" target** ("meal at 7:30", shipped 2026-06-30):
+  the clock time *is* the arrival, banded by kitchen close; drive stops gating
+  (you'll leave in time) and is informational only. Rolls to tomorrow if the
+  time's already past.
 - **Kitchen close** — the threshold the light turns on, by precedence: the
   circle's **override** (`closeBufferMin` = minutes before posted close they
   really stop seating; Baroni's 0 = "at close", Matt's 15) → Google **KITCHEN**

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDiscoveryData } from './discovery-context.ts'
-import { formatClock } from '../lib/time.ts'
+import { formatClock, formatMinOfDay } from '../lib/time.ts'
 import { WhenChips } from './WhenChips.tsx'
 import { GenreFilter } from './GenreFilter.tsx'
 import { PlaceCard } from './PlaceCard.tsx'
@@ -68,7 +68,10 @@ export function DiscoveryScreen() {
   const [view, setView] = useState<'list' | 'map'>('list')
 
   const shown = d.shown
-  const departureLabel = formatClock(d.nowMs + d.offset * 60_000)
+  const caption =
+    d.targetMinOfDay != null
+      ? `Arriving around ${formatMinOfDay(d.targetMinOfDay)}`
+      : `Leaving around ${formatClock(d.nowMs + d.offset * 60_000)}`
 
   if (d.geoStatus === 'prompting') {
     return <Centered>Finding where you are…</Centered>
@@ -92,7 +95,13 @@ export function DiscoveryScreen() {
   return (
     <div className="flex h-full flex-col gap-3">
       <h1 className="sr-only">Find a place to eat</h1>
-      <WhenChips value={d.offset} onChange={d.setOffset} departureLabel={departureLabel} />
+      <WhenChips
+        value={d.offset}
+        onChange={d.setOffset}
+        targetMinOfDay={d.targetMinOfDay}
+        onSetTarget={d.setTargetArrival}
+        caption={caption}
+      />
       <GenreFilter genres={d.genres} selected={d.genre} onSelect={d.setGenre} />
       <div className="flex items-center gap-3 text-sm">
         {d.favoriteIds.size > 0 && (
