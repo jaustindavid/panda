@@ -151,8 +151,9 @@ fire.
   _Refines PRD §11.2 Q7; the "richer kitchen-close" follow-on to the 2026-06-29
   traffic-light rework._
 - `[ ]` **Speculative chambers** [M–XL] — custom tags, saved lists,
-  multi-circle, brand/category-level blocking, per-place meal-duration
-  (PRD §1.3, §11.2 Q8). File real versions when demand appears.
+  multi-circle, brand/category-level blocking (PRD §1.3). File real versions
+  when demand appears. _(Per-place meal-duration dropped 2026-06-30 —
+  superseded by the kitchen-close / per-day "latest walk-in" model.)_
 
 ---
 
