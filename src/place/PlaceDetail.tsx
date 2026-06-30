@@ -18,23 +18,19 @@ interface PlaceDetailProps {
 }
 
 function StatusBadge({ status }: { status: GoableStatus }) {
-  if (status === 'hours-unknown') {
-    return (
-      <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-300">
-        Hours unknown
-      </span>
-    )
-  }
-  if (status === 'not-goable') {
-    return (
-      <span className="shrink-0 rounded-full bg-slate-700 px-2 py-0.5 text-xs font-medium text-slate-300">
-        Not go-able now
-      </span>
-    )
-  }
+  const b =
+    status === 'green'
+      ? { cls: 'bg-emerald-500/15 text-emerald-300', label: 'Go-able' }
+      : status === 'yellow'
+        ? { cls: 'bg-amber-500/15 text-amber-300', label: 'Cutting it close' }
+        : status === 'red'
+          ? { cls: 'bg-rose-500/15 text-rose-300', label: 'Not go-able now' }
+          : { cls: 'bg-slate-600/30 text-slate-300', label: 'Hours unknown' }
   return (
-    <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-300">
-      Go-able
+    <span
+      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${b.cls}`}
+    >
+      {b.label}
     </span>
   )
 }

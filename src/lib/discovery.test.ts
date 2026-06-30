@@ -44,21 +44,21 @@ describe('rankDiscovery', () => {
     arrivalOffsetMin: 15,
   })
 
-  it('excludes not-go-able places', () => {
+  it('excludes red (closed-by-arrival) places', () => {
     expect(ranked.find((d) => d.place.id === 'near-closed')).toBeUndefined()
   })
 
-  it('keeps go-able and hours-unknown', () => {
+  it('keeps green and hours-unknown', () => {
     expect(ranked.map((d) => d.place.id)).toEqual([
-      'near-open', // go-able, nearest
-      'far-open', // go-able, farther
-      'unknown', // hours-unknown sorts after go-able
+      'near-open', // green, nearest
+      'far-open', // green, farther
+      'unknown', // hours-unknown sorts after green
     ])
   })
 
-  it('orders go-able before hours-unknown regardless of distance', () => {
+  it('orders green before hours-unknown regardless of distance', () => {
     const statuses = ranked.map((d) => d.status)
-    expect(statuses).toEqual(['goable', 'goable', 'hours-unknown'])
+    expect(statuses).toEqual(['green', 'green', 'hours-unknown'])
   })
 
   it('annotates genre', () => {
@@ -103,7 +103,7 @@ describe('availableGenres', () => {
 })
 
 describe('rankDiscovery travel time (Q9)', () => {
-  // Open Wed 11:00–19:00; "now" Wed 17:00, chip 0, 45-min meal (default).
+  // Open Wed 11:00–19:00; "now" Wed 17:00, chip 0. Unknown ⇒ kitchen 18:15.
   const open11to19 = [
     { open: { day: WED, hour: 11, minute: 0 }, close: { day: WED, hour: 19, minute: 0 } },
   ]
@@ -111,27 +111,31 @@ describe('rankDiscovery travel time (Q9)', () => {
   const p = place('p', 0.01, 'pizza_restaurant', open11to19)
   const base = { places: [p], origin: { latitude: 0, longitude: 0 }, nowMs: now }
 
-  it('no travel data: go-able (arrive 17:00, finish 17:45 ≤ 19:00)', () => {
+  it('no travel data: green (arrive 17:00 < kitchen 18:15)', () => {
     expect(rankDiscovery({ ...base, arrivalOffsetMin: 0 }).map((d) => d.status)).toEqual([
-      'goable',
+      'green',
     ])
   })
 
-  it('a long drive pushes finish past close → not go-able', () => {
-    // 90-min drive → arrive 18:30, finish 19:15 > 19:00.
+  it('a drive into the last stretch → yellow (arrive 18:30, kitchen 18:15)', () => {
     const r = rankDiscovery({ ...base, arrivalOffsetMin: 0, travelSecondsById: { p: 90 * 60 } })
+    expect(r[0].status).toBe('yellow')
+  })
+
+  it('a drive past the posted close → red, excluded (arrive 19:30 > 19:00)', () => {
+    const r = rankDiscovery({ ...base, arrivalOffsetMin: 0, travelSecondsById: { p: 150 * 60 } })
     expect(r).toEqual([])
   })
 
-  it('annotates travelSeconds and stays go-able for a short drive', () => {
+  it('annotates travelSeconds and stays green for a short drive', () => {
     const r = rankDiscovery({ ...base, arrivalOffsetMin: 0, travelSecondsById: { p: 10 * 60 } })
-    expect(r[0].status).toBe('goable')
+    expect(r[0].status).toBe('green')
     expect(r[0].travelSeconds).toBe(600)
   })
 
   it('null drive time falls back to chip-only (travelSeconds absent)', () => {
     const r = rankDiscovery({ ...base, arrivalOffsetMin: 0, travelSecondsById: { p: null } })
-    expect(r[0].status).toBe('goable')
+    expect(r[0].status).toBe('green')
     expect(r[0].travelSeconds).toBeUndefined()
   })
 })

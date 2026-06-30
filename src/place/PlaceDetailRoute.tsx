@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useDiscoveryData } from '../discovery/discovery-context.ts'
 import { getPlaceDetails } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
-import { evaluateGoable, MEAL_DURATION_MIN } from '../lib/goable.ts'
+import { evaluateGoable } from '../lib/goable.ts'
 import type { GoableStatus } from '../lib/goable.ts'
 import { genreLabel } from '../lib/genre.ts'
 import { haversineMeters } from '../lib/distance.ts'
@@ -77,7 +77,6 @@ export function PlaceDetailRoute() {
     utcOffsetMinutes: fetched.utcOffsetMinutes,
     nowMs: d.nowMs,
     arrivalOffsetMin: d.offset,
-    mealDurationMin: MEAL_DURATION_MIN,
   }).status
   const distance = d.coords ? haversineMeters(d.coords, fetched.location) : null
 

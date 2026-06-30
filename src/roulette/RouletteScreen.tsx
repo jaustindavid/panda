@@ -10,9 +10,11 @@ import { formatDistance } from '../lib/distance.ts'
 export function RouletteScreen() {
   const d = useDiscoveryData()
   const navigate = useNavigate()
-  // Go-able only (PRD §7 F2 "go-able + filtered set") — don't let roulette
-  // decide on a maybe-closed (hours-unknown) place.
-  const candidates = d.shown.filter((s) => s.status === 'goable')
+  // Go-able set only (PRD §7 F2) — 🟢 green + 🟡 yellow; never a maybe-closed
+  // (hours-unknown) place.
+  const candidates = d.shown.filter(
+    (s) => s.status === 'green' || s.status === 'yellow',
+  )
   const [pick, setPick] = useState<DiscoveryPlace | null>(null)
   const [displayIdx, setDisplayIdx] = useState(0)
   const [nonce, setNonce] = useState(0)
@@ -84,7 +86,7 @@ export function RouletteScreen() {
               <p className="mt-1 text-3xl font-bold">{pick.place.name}</p>
               <p className="mt-1 text-slate-400">
                 {pick.genre} · {formatDistance(pick.distanceMeters)}
-                {pick.status === 'hours-unknown' && ' · hours unknown'}
+                {pick.status === 'yellow' && ' · cutting it close'}
               </p>
             </div>
             <div className="flex gap-3">

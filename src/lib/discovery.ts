@@ -1,6 +1,6 @@
 import type { LatLng } from './distance.ts'
 import { haversineMeters } from './distance.ts'
-import { evaluateGoable, MEAL_DURATION_MIN } from './goable.ts'
+import { evaluateGoable } from './goable.ts'
 import type { GoableStatus } from './goable.ts'
 import { genreLabel } from './genre.ts'
 import type { Place } from './places.ts'
@@ -14,13 +14,12 @@ export const MAX_DISTANCE_M = 100_000
 
 export interface DiscoveryPlace {
   place: Place
-  /** 'goable' or 'hours-unknown' — 'not-goable' places are excluded (F1). */
-  status: Exclude<GoableStatus, 'not-goable'>
+  /** 🟢 green / 🟡 yellow / hours-unknown — 🔴 red is excluded (PRD §7 F1). */
+  status: Exclude<GoableStatus, 'red'>
   distanceMeters: number
   /** Drive time from the user, seconds (Routes matrix). Absent ⇒ unknown. */
   travelSeconds?: number
   genre: string
-  overrideZeroedOut: boolean
 }
 
 export interface RankOptions {
@@ -29,7 +28,6 @@ export interface RankOptions {
   nowMs: number
   /** The "leave in" chip offset (minutes). Per-place drive time is added. */
   arrivalOffsetMin: number
-  mealDurationMin?: number
   /** placeId → closeBufferMin override (M4 feeds this; none in M2). */
   overrides?: Record<string, number>
   /** placeId → drive seconds (Routes matrix, §11.2 Q9). Added to the chip
@@ -39,14 +37,13 @@ export interface RankOptions {
 }
 
 /**
- * Annotate, filter, and sort the fetched places for the discovery list:
- * exclude not-go-able places (PRD §7 F1), keep go-able + hours-unknown, and
- * sort go-able first then hours-unknown, each nearest-first. Pure — chip
- * re-filtering re-runs this client-side, no new Maps call (PRD §8).
+ * Annotate, filter, and sort the fetched places for the discovery list: drop
+ * 🔴 red (PRD §7 F1), keep 🟢 green / 🟡 yellow / hours-unknown, and sort
+ * green → yellow → hours-unknown, each nearest-first. Pure — chip re-filtering
+ * re-runs this client-side, no new Maps call (PRD §8).
  */
 export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
   const { places, origin, nowMs, arrivalOffsetMin } = opts
-  const mealDurationMin = opts.mealDurationMin ?? MEAL_DURATION_MIN
 
   const out: DiscoveryPlace[] = []
   for (const place of places) {
@@ -65,20 +62,19 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
       utcOffsetMinutes: place.utcOffsetMinutes,
       nowMs,
       arrivalOffsetMin: arrivalOffsetMin + travelMin,
-      mealDurationMin,
     })
-    if (result.status === 'not-goable') continue
+    if (result.status === 'red') continue
     out.push({
       place,
       status: result.status,
       distanceMeters,
       travelSeconds: driveSec ?? undefined,
       genre: genreLabel(place),
-      overrideZeroedOut: result.overrideZeroedOut,
     })
   }
 
-  const rank = (s: DiscoveryPlace['status']) => (s === 'goable' ? 0 : 1)
+  const rank = (s: DiscoveryPlace['status']) =>
+    s === 'green' ? 0 : s === 'yellow' ? 1 : 2
   out.sort(
     (a, b) => rank(a.status) - rank(b.status) || a.distanceMeters - b.distanceMeters,
   )

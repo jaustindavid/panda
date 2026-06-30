@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { evaluateGoable } from './goable.ts'
+import { DEFAULT_KITCHEN_BUFFER_MIN, evaluateGoable } from './goable.ts'
 import type { GoableInput, OpeningPeriod, TimeOfWeek } from './goable.ts'
 
-// Weekday epochs (UTC) for readable `nowMs` values. Day-of-week (Places:
-// 0=Sun..6=Sat): 2026-01-07 = Wed(3), 01-09 = Fri(5), 01-10 = Sat(6),
-// 01-11 = Sun(0).
+// Day-of-week (Places: 0=Sun..6=Sat): 2026-01-07 = Wed(3), 01-09 = Fri(5),
+// 01-10 = Sat(6), 01-11 = Sun(0). arrival = now + 15 (the default chip).
 const WED = 3
 const FRI = 5
 const SAT = 6
@@ -26,198 +25,130 @@ const period = (
 ): OpeningPeriod => ({ open: tw(od, oh, om), close: tw(cd, ch, cm) })
 
 function input(partial: Partial<GoableInput>): GoableInput {
-  return {
-    utcOffsetMinutes: 0,
-    nowMs: 0,
-    arrivalOffsetMin: 15,
-    mealDurationMin: 75,
-    ...partial,
-  }
+  return { utcOffsetMinutes: 0, nowMs: 0, arrivalOffsetMin: 15, ...partial }
 }
+const statusAt = (partial: Partial<GoableInput>) => evaluateGoable(input(partial)).status
+
+it('default unknown kitchen buffer is 45 min', () => {
+  expect(DEFAULT_KITCHEN_BUFFER_MIN).toBe(45)
+})
 
 describe('hours-unknown', () => {
-  it('reports unknown when periods are undefined', () => {
-    expect(evaluateGoable(input({ nowMs: utc(7, 18, 0) })).status).toBe(
-      'hours-unknown',
-    )
+  it('undefined periods', () => {
+    expect(statusAt({ nowMs: utc(7, 18, 0) })).toBe('hours-unknown')
   })
-  it('reports unknown for an empty periods array', () => {
-    expect(
-      evaluateGoable(input({ periods: [], nowMs: utc(7, 18, 0) })).status,
-    ).toBe('hours-unknown')
+  it('empty periods array', () => {
+    expect(statusAt({ periods: [], nowMs: utc(7, 18, 0) })).toBe('hours-unknown')
   })
 })
 
 describe('24-hour places (no close)', () => {
-  it('is always go-able', () => {
-    const r = evaluateGoable(
-      input({
-        periods: [{ open: tw(WED, 0, 0) }],
-        nowMs: utc(7, 3, 0),
-      }),
+  it('always green', () => {
+    expect(statusAt({ periods: [{ open: tw(WED, 0, 0) }], nowMs: utc(7, 3, 0) })).toBe(
+      'green',
     )
-    expect(r.status).toBe('goable')
   })
 })
 
-describe('simple same-day interval (Wed 11:00–22:00)', () => {
+// No override / KITCHEN ⇒ kitchen close = posted 22:00 − 45 = 21:15.
+describe('simple interval Wed 11:00–22:00 (unknown ⇒ kitchen 21:15)', () => {
   const periods = [period(WED, 11, 0, WED, 22, 0)]
 
-  it('go-able mid-service', () => {
-    // now 18:00, arrive 18:15, finish 19:30 — well inside.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 18, 0) })).status).toBe(
-      'goable',
-    )
+  it('green well before kitchen close', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 18, 0) })).toBe('green') // arrive 18:15
   })
-
-  it('excludes closing-soon (would finish after close)', () => {
-    // now 21:00, arrive 21:15, finish 22:30 > 22:00.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 21, 0) })).status).toBe(
-      'not-goable',
-    )
+  it('green up to the moment before kitchen close', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 20, 59) })).toBe('green') // arrive 21:14
   })
-
-  it('includes opening-soon (opens before arrival)', () => {
-    // now 10:30, n=60, arrive 11:30, finish 12:45.
-    expect(
-      evaluateGoable(
-        input({ periods, nowMs: utc(7, 10, 30), arrivalOffsetMin: 60 }),
-      ).status,
-    ).toBe('goable')
+  it('yellow once arrival reaches kitchen close', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 21, 0) })).toBe('yellow') // arrive 21:15
   })
-
-  it('excludes when not yet open at arrival', () => {
-    // now 09:00, arrive 09:15 < 11:00 open.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 9, 0) })).status).toBe(
-      'not-goable',
-    )
+  it('yellow in the last stretch (kitchen shut, door open)', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 21, 30) })).toBe('yellow') // arrive 21:45
   })
-
-  it('is inclusive at the open boundary (arrival == open)', () => {
-    // now 10:45, arrive 11:00, finish 12:15.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 10, 45) })).status).toBe(
-      'goable',
-    )
+  it('yellow right at the posted close', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 21, 45) })).toBe('yellow') // arrive 22:00
   })
-
-  it('is inclusive at the close boundary (finish == close)', () => {
-    // now 20:30, arrive 20:45, finish 22:00 == close.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 20, 30) })).status).toBe(
-      'goable',
-    )
+  it('red once arrival passes the posted close', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 21, 50) })).toBe('red') // arrive 22:05
+  })
+  it('red before they open', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 9, 0) })).toBe('red') // arrive 09:15
+  })
+  it('green inclusive at the open boundary (arrival == open)', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 10, 45) })).toBe('green') // arrive 11:00
   })
 })
 
-describe('past-midnight wrap (Fri 18:00–Sat 02:00)', () => {
+describe('override (closeBufferMin) = the circle’s kitchen-close', () => {
+  const periods = [period(WED, 11, 0, WED, 22, 0)]
+
+  it('Baroni’s (override 0 = at close): green right up to posted close', () => {
+    // arrive 21:45 — yellow on the default 21:15, but override 0 ⇒ kitchen 22:00.
+    expect(statusAt({ periods, closeBufferMin: 0, nowMs: utc(7, 21, 30) })).toBe('green')
+    expect(statusAt({ periods, nowMs: utc(7, 21, 30) })).toBe('yellow') // (no override)
+  })
+  it('Matt’s (override 15): green before 21:45, yellow after', () => {
+    expect(statusAt({ periods, closeBufferMin: 15, nowMs: utc(7, 21, 25) })).toBe('green') // 21:40
+    expect(statusAt({ periods, closeBufferMin: 15, nowMs: utc(7, 21, 35) })).toBe('yellow') // 21:50
+  })
+  it('an override larger than the window clamps to open → never green (yellow)', () => {
+    // Wed 17:00–22:00 (5h), override 400 ⇒ kitchen clamps to open 17:00.
+    expect(
+      statusAt({ periods: [period(WED, 17, 0, WED, 22, 0)], closeBufferMin: 400, nowMs: utc(7, 18, 0) }),
+    ).toBe('yellow')
+  })
+})
+
+describe('KITCHEN secondary hours (precedence override > KITCHEN > default)', () => {
+  const periods = [period(WED, 11, 0, WED, 23, 0)]
+  const kitchenPeriods = [period(WED, 11, 0, WED, 21, 0)] // kitchen closes 21:00
+
+  it('KITCHEN sets the green→yellow line when present', () => {
+    expect(statusAt({ periods, kitchenPeriods, nowMs: utc(7, 21, 0) })).toBe('yellow') // arrive 21:15 ≥ 21:00
+    // Without KITCHEN, the default buffer puts kitchen at 22:15 ⇒ still green.
+    expect(statusAt({ periods, nowMs: utc(7, 21, 0) })).toBe('green')
+  })
+  it('override supersedes KITCHEN', () => {
+    // override 30 ⇒ kitchen 22:30 (from posted 23:00); KITCHEN 21:00 ignored.
+    expect(
+      statusAt({ periods, kitchenPeriods, closeBufferMin: 30, nowMs: utc(7, 21, 30) }),
+    ).toBe('green') // arrive 21:45 < 22:30
+  })
+})
+
+describe('past-midnight wrap (Fri 18:00–Sat 02:00 ⇒ kitchen 01:15)', () => {
   const periods = [period(FRI, 18, 0, SAT, 2, 0)]
 
-  it('go-able late on Friday into Saturday', () => {
-    // now Fri 23:30, arrive 23:45, finish Sat 01:00.
-    expect(evaluateGoable(input({ periods, nowMs: utc(9, 23, 30) })).status).toBe(
-      'goable',
-    )
+  it('green late Friday into Saturday', () => {
+    expect(statusAt({ periods, nowMs: utc(9, 23, 30) })).toBe('green') // arrive Fri 23:45
   })
-
-  it('excludes once the meal would run past the 02:00 close', () => {
-    // now Sat 01:30, arrive 01:45, finish 03:00 > 02:00.
-    expect(evaluateGoable(input({ periods, nowMs: utc(10, 1, 30) })).status).toBe(
-      'not-goable',
-    )
+  it('yellow after the kitchen close, before the 02:00 door close', () => {
+    expect(statusAt({ periods, nowMs: utc(10, 1, 10) })).toBe('yellow') // arrive Sat 01:25
+  })
+  it('red after the 02:00 close', () => {
+    expect(statusAt({ periods, nowMs: utc(10, 2, 0) })).toBe('red') // arrive Sat 02:15
   })
 })
 
 describe('week-end wrap (Sat 22:00–Sun 02:00)', () => {
-  it('go-able early Sunday against the Saturday-night interval', () => {
-    // now Sun 00:30, arrive 00:45, finish 02:00.
+  it('green early Sunday against the Saturday-night interval', () => {
     const periods = [period(SAT, 22, 0, SUN, 2, 0)]
-    expect(evaluateGoable(input({ periods, nowMs: utc(11, 0, 30) })).status).toBe(
-      'goable',
-    )
+    expect(statusAt({ periods, nowMs: utc(11, 0, 30) })).toBe('green') // arrive Sun 00:45
   })
 })
 
 describe('split lunch/dinner periods are never merged', () => {
   const periods = [period(WED, 11, 0, WED, 14, 0), period(WED, 17, 0, WED, 22, 0)]
 
-  it('go-able inside the lunch period', () => {
-    // now 12:00, arrive 12:15, finish 13:30.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 12, 0) })).status).toBe(
-      'goable',
-    )
+  it('green inside lunch', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 12, 0) })).toBe('green') // arrive 12:15
   })
-
-  it('excludes a meal that would span the lunch→dinner gap', () => {
-    // now 13:00, arrive 13:15, finish 14:30 — past lunch close, before dinner.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 13, 0) })).status).toBe(
-      'not-goable',
-    )
+  it('red in the lunch→dinner gap', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 14, 30) })).toBe('red') // arrive 14:45
   })
-
-  it('go-able inside the dinner period', () => {
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 18, 0) })).status).toBe(
-      'goable',
-    )
-  })
-})
-
-describe('good-time-to-go override (closeBufferMin)', () => {
-  const periods = [period(WED, 11, 0, WED, 22, 0)]
-
-  it('tightens the close (kitchen closes 2h early)', () => {
-    // override 120 → effective close 20:00. now 19:30, finish 21:00 > 20:00.
-    const r = evaluateGoable(
-      input({ periods, closeBufferMin: 120, nowMs: utc(7, 19, 30) }),
-    )
-    expect(r.status).toBe('not-goable')
-    // Same time WITHOUT the override is go-able — proves the override bit.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 19, 30) })).status).toBe(
-      'goable',
-    )
-  })
-
-  it('clamps + flags an override that would zero out the place', () => {
-    // Wed 17:00–22:00, override 400 min (> the 5h window) → close <= open.
-    const r = evaluateGoable(
-      input({
-        periods: [period(WED, 17, 0, WED, 22, 0)],
-        closeBufferMin: 400,
-        nowMs: utc(7, 18, 0),
-      }),
-    )
-    expect(r.status).toBe('not-goable')
-    expect(r.overrideZeroedOut).toBe(true)
-  })
-})
-
-describe('KITCHEN secondary hours (precedence override > KITCHEN > posted)', () => {
-  const periods = [period(WED, 11, 0, WED, 23, 0)]
-  const kitchenPeriods = [period(WED, 11, 0, WED, 21, 0)]
-
-  it('KITCHEN tightens the close when present and no override', () => {
-    // now 20:30, arrive 20:45, finish 22:00 > kitchen close 21:00.
-    expect(
-      evaluateGoable(input({ periods, kitchenPeriods, nowMs: utc(7, 20, 30) }))
-        .status,
-    ).toBe('not-goable')
-    // Without KITCHEN, posted close 23:00 makes it go-able.
-    expect(evaluateGoable(input({ periods, nowMs: utc(7, 20, 30) })).status).toBe(
-      'goable',
-    )
-  })
-
-  it('override supersedes KITCHEN', () => {
-    // override 30 → effective close 22:30 (from posted 23:00), KITCHEN ignored.
-    // now 20:30, finish 22:00 <= 22:30.
-    expect(
-      evaluateGoable(
-        input({
-          periods,
-          kitchenPeriods,
-          closeBufferMin: 30,
-          nowMs: utc(7, 20, 30),
-        }),
-      ).status,
-    ).toBe('goable')
+  it('green inside dinner', () => {
+    expect(statusAt({ periods, nowMs: utc(7, 18, 0) })).toBe('green') // arrive 18:15
   })
 })
 
@@ -225,15 +156,9 @@ describe('evaluated in the place local time (timezone)', () => {
   const periods = [period(WED, 11, 0, WED, 14, 0)] // Wed 11:00–14:00 local
 
   it('uses the place utcOffset, not the runner timezone', () => {
-    // 2026-01-07 02:00 UTC. In Tokyo (+540) that is Wed 11:00 local → go-able.
-    const tokyo = evaluateGoable(
-      input({ periods, utcOffsetMinutes: 540, nowMs: utc(7, 2, 0) }),
-    )
-    expect(tokyo.status).toBe('goable')
-    // Same instant at offset 0 is Wed 02:00 local → closed.
-    const utc0 = evaluateGoable(
-      input({ periods, utcOffsetMinutes: 0, nowMs: utc(7, 2, 0) }),
-    )
-    expect(utc0.status).toBe('not-goable')
+    // 2026-01-07 02:00 UTC → Tokyo (+540) Wed 11:00 local, arrive 11:15 → green.
+    expect(statusAt({ periods, utcOffsetMinutes: 540, nowMs: utc(7, 2, 0) })).toBe('green')
+    // Same instant at offset 0 is Wed 02:00 local → before open → red.
+    expect(statusAt({ periods, utcOffsetMinutes: 0, nowMs: utc(7, 2, 0) })).toBe('red')
   })
 })

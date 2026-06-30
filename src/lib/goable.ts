@@ -1,21 +1,28 @@
 // The go-able filter — panda's core pure function (PRD §3, §11.2 Q1;
-// AGENTS.md load-bearing). A place is "go-able" when it will be open when we
-// ARRIVE (now + n) AND still open when we FINISH eating (arrival + m), within
-// ONE continuous open interval. Evaluated in the PLACE's local time.
+// AGENTS.md load-bearing). Answers "is this a real dinner option?" as a
+// traffic light, anchored on the KITCHEN close (when they stop serving), not
+// the posted door-close:
 //
-// Precedence for the effective close: override > KITCHEN secondary hours >
-// posted hours. Never merge separate periods (lunch/dinner). Defensive
-// past-midnight + week wrap. An override that would zero out a place is
-// clamped + flagged, not silently applied. Hours-unknown places are reported
-// as such (shown, not excluded) — the UI decides.
+//   🟢 green  — arrive before kitchen close (they'll cook; come on in)
+//   🟡 yellow — arrive after kitchen close but at/before posted close
+//               (kitchen shut, door open — cutting it close)
+//   🔴 red    — arrive after posted close, or before they open (hidden)
+//
+// Kitchen close, by precedence: circle OVERRIDE (closeBufferMin = minutes
+// before posted; our local knowledge) > Google KITCHEN secondary hours >
+// posted close − DEFAULT_KITCHEN_BUFFER_MIN (the "unknown" guess). So saved
+// places get precise treatment; unknowns turn yellow in the last 45 min.
+// Evaluated in the PLACE's local time; never merge separate periods
+// (lunch/dinner); defensive past-midnight + week wrap. Hours-unknown places
+// are reported as such (shown, not excluded) — the UI decides.
 
 const MINUTES_PER_DAY = 1440
 const MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY
 
-/** Meal duration m (minutes): how long we assume you'll sit, added to arrival
- *  to test still-open-at-finish. Fixed in v1, not user-facing. Single source
- *  of truth — both discovery ranking and the cold detail route use this. */
-export const MEAL_DURATION_MIN = 45
+/** For a place with no kitchen-close signal (no override, no KITCHEN hours),
+ *  assume the kitchen stops this many minutes before the posted close. The
+ *  green→yellow line for unknowns. Owner: 45 (PRD §3). */
+export const DEFAULT_KITCHEN_BUFFER_MIN = 45
 
 /** A point in the weekly schedule. day: 0 = Sunday … 6 = Saturday (Places). */
 export interface TimeOfWeek {
@@ -37,26 +44,22 @@ export interface GoableInput {
   /** KITCHEN secondaryHoursType periods, if present (sparse, best-effort).
    *  Current (holiday-aware) preferred over regular by the mapper. */
   kitchenPeriods?: OpeningPeriod[]
-  /** Good-time-to-go override: minutes before posted close the place really
-   *  stops seating. Authoritative over KITCHEN + posted. */
+  /** Override: minutes before posted close the place really stops seating
+   *  (the circle's local knowledge). 0 = "at close" (Baroni's); 15 = Matt's.
+   *  Authoritative over KITCHEN + the default buffer. */
   closeBufferMin?: number
   /** Place-local UTC offset in minutes (Maps utcOffsetMinutes). */
   utcOffsetMinutes: number
   /** Current instant, epoch ms. */
   nowMs: number
-  /** Arrival offset n (chip), minutes from now. */
+  /** Arrival offset (chip "leave in" + drive time), minutes from now. */
   arrivalOffsetMin: number
-  /** Meal duration m, minutes (fixed — see MEAL_DURATION_MIN). */
-  mealDurationMin: number
 }
 
-export type GoableStatus = 'goable' | 'not-goable' | 'hours-unknown'
+export type GoableStatus = 'green' | 'yellow' | 'red' | 'hours-unknown'
 
 export interface GoableResult {
   status: GoableStatus
-  /** True when the override would make the place never go-able (the value was
-   *  clamped, not silently applied — the UI flags it, F4b). */
-  overrideZeroedOut: boolean
 }
 
 /** Minutes from the start of the week (Sunday 00:00) for a TimeOfWeek. */
@@ -83,20 +86,6 @@ function periodToInterval(p: OpeningPeriod): Interval {
   return { openWM, closeWM }
 }
 
-/** Does [arrival, finish] fit inside [open, close], accounting for the cyclic
- *  week (the arrival/finish pair may need shifting by ±1 week to align). */
-function intervalContains(
-  openWM: number,
-  closeWM: number,
-  arrivalWM: number,
-  finishWM: number,
-): boolean {
-  for (const shift of [-MINUTES_PER_WEEK, 0, MINUTES_PER_WEEK]) {
-    if (openWM <= arrivalWM + shift && finishWM + shift <= closeWM) return true
-  }
-  return false
-}
-
 /** The KITCHEN close that applies to a posted period, if any (matched by the
  *  period's open day). KITCHEN tightens the close only — open stays posted. */
 function kitchenCloseFor(
@@ -117,16 +106,37 @@ function kitchenCloseFor(
   return tightest
 }
 
+const RANK = { green: 0, yellow: 1, red: 2 } as const
+type Band = keyof typeof RANK
+
+/** Band for one period: 🟢 open ≤ arrive < kitchen, 🟡 kitchen ≤ arrive ≤
+ *  posted, 🔴 otherwise — across the cyclic week (arrival may shift ±1 week
+ *  to align). Returns the best band any alignment yields. */
+function bandFor(
+  openWM: number,
+  kitchenWM: number,
+  postedWM: number,
+  arrivalWM: number,
+): Band {
+  let best: Band = 'red'
+  for (const shift of [-MINUTES_PER_WEEK, 0, MINUTES_PER_WEEK]) {
+    const a = arrivalWM + shift
+    if (a >= openWM && a < kitchenWM) return 'green'
+    if (a >= kitchenWM && a <= postedWM) best = 'yellow'
+  }
+  return best
+}
+
 /**
- * Evaluate whether a place is go-able for the requested arrival + meal.
+ * Evaluate the go-able traffic light for the requested arrival.
  * Pure: all time inputs are passed in (no Date.now()).
  */
 export function evaluateGoable(input: GoableInput): GoableResult {
   const { periods, kitchenPeriods, closeBufferMin, utcOffsetMinutes } = input
-  const { nowMs, arrivalOffsetMin, mealDurationMin } = input
+  const { nowMs, arrivalOffsetMin } = input
 
   if (!periods || periods.length === 0) {
-    return { status: 'hours-unknown', overrideZeroedOut: false }
+    return { status: 'hours-unknown' }
   }
 
   // Convert "now" to the place's local wall clock, then to week-minutes.
@@ -136,37 +146,30 @@ export function evaluateGoable(input: GoableInput): GoableResult {
     local.getUTCHours() * 60 +
     local.getUTCMinutes()
   const arrivalWM = nowWM + arrivalOffsetMin
-  const finishWM = arrivalWM + mealDurationMin
 
-  const hasOverride = closeBufferMin !== undefined && closeBufferMin > 0
+  const hasOverride = closeBufferMin !== undefined && closeBufferMin >= 0
 
-  let goable = false
-  let overrideZeroedOut = false
-
+  let best: Band = 'red'
   for (const period of periods) {
     const posted = periodToInterval(period)
 
-    // Effective close, applying precedence override > KITCHEN > posted.
-    let closeWM = posted.closeWM
+    // Kitchen close: override > KITCHEN > posted − default buffer.
+    let kitchenWM: number
     if (hasOverride) {
-      closeWM = posted.closeWM - (closeBufferMin as number)
-      if (closeWM <= posted.openWM) {
-        // Override zeroes out this period — clamp + flag, don't silently apply.
-        closeWM = posted.openWM
-        overrideZeroedOut = true
-      }
+      kitchenWM = posted.closeWM - (closeBufferMin as number)
     } else {
       const kClose = kitchenCloseFor(posted, period.open.day, kitchenPeriods)
-      if (kClose !== undefined) closeWM = Math.min(closeWM, kClose)
+      kitchenWM = kClose ?? posted.closeWM - DEFAULT_KITCHEN_BUFFER_MIN
     }
+    // Clamp into [open, posted]: a buffer larger than the window just means
+    // "always cutting it close" (kitchen == open), never negative.
+    if (kitchenWM < posted.openWM) kitchenWM = posted.openWM
+    if (kitchenWM > posted.closeWM) kitchenWM = posted.closeWM
 
-    if (intervalContains(posted.openWM, closeWM, arrivalWM, finishWM)) {
-      goable = true
-    }
+    const band = bandFor(posted.openWM, kitchenWM, posted.closeWM, arrivalWM)
+    if (RANK[band] < RANK[best]) best = band
+    if (best === 'green') break
   }
 
-  return {
-    status: goable ? 'goable' : 'not-goable',
-    overrideZeroedOut,
-  }
+  return { status: best }
 }

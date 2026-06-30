@@ -19,10 +19,10 @@ _© 2026 Austin David. Released under CC0 1.0 (public domain) — see LICENSE._
 
 **Purpose**: panda is a phone-first installable web app (PWA) that answers
 one question fast — _"where can we eat right now?"_ — for a small fixed
-circle of friends/family. It surfaces restaurants that are **go-able** (open
-when we'd arrive _and_ still open when we'd finish eating), filterable by
-genre, with a **roulette** mode for when nobody can decide. On top of the
-live Maps data it layers the circle's shared **notes** and **visit
+circle of friends/family. It surfaces restaurants that are **go-able** (a
+🟢/🟡/🔴 traffic light: will the kitchen still cook for us when we'd arrive?),
+filterable by genre, with a **roulette** mode for when nobody can decide. On
+top of the live Maps data it layers the circle's shared **notes** and **visit
 history**, plus a one-tap **"here now"** to log a pop-in. Place data comes
 from Google Maps; the notes/visits layer is the circle's own.
 
@@ -30,8 +30,8 @@ from Google Maps; the notes/visits layer is the circle's own.
 
 - Sub-10-second path from opening the app to a usable "here's where you can
   eat now (or soon)" list.
-- "Open" means _actually go-able_: open when we arrive AND still open when
-  we'd finish — not just open this instant.
+- "Open" means _actually go-able_: the kitchen will still serve us when we'd
+  arrive (🟢), or it's cutting it close (🟡) — not just open this instant.
 - Shared circle memory: notes and visits visible to everyone in the circle,
   attributed.
 - Kill decision paralysis: roulette picks from the current go-able +
@@ -120,27 +120,32 @@ meal-duration; brand/category-level blocking (if per-place proves tedious).
 - **Visit** — a record that a member was at a Place at a time; created by
   "here now"; shared.
 - **Here now** — one-tap action that creates a Visit for the current place.
-- **Open (go-able)** — a Place that will be open when we **arrive**
-  (now + arrival offset _n_) AND still open when we'd **finish** eating
-  (now + _n_ + meal duration _m_), within the **same** continuous open
-  interval. Includes opening-soon places; excludes places open now that
-  close before we'd finish.
+- **Go-able (traffic light)** — is a Place a real dinner option for when we'd
+  arrive? Anchored on the **kitchen close** (when they stop serving), not the
+  posted door-close, in three bands: 🟢 **green** = we'd arrive **before
+  kitchen close** (they'll cook); 🟡 **yellow** = arrive **after kitchen close
+  but at/before posted close** (kitchen shut, door open — cutting it close);
+  🔴 **red** = arrive **after posted close** (or before they open) — hidden
+  from discovery + roulette, still reachable by name search. Evaluated
+  per-Place in its local time against `arrival = now + chip + drive(place)`;
+  separate lunch/dinner periods are never merged. _Supersedes the old binary
+  "open at arrival AND still open at finish": being **seated** before the
+  kitchen closes is enough — once seated they let us stay, so we no longer
+  require the meal to finish before the door closes (that wrongly killed e.g.
+  Baroni's at 7:30). Owner design pass 2026-06-29._
 - **Arrival offset (_n_)** — how far out we plan to arrive; user-chosen via
-  **Now / +15 / +30 / +60** chips. Default **+15**. _v1 treats this as a
-  flat offset applied uniformly to every place._ **Future model (§11.2
-  Q9):** the chip is really a **departure buffer**, and true arrival is
-  per-place — `arrival(place) = now + departure_buffer + travel_time(place)`
-  — so a place 30 min away is tested for open-on-arrival 30 min later than a
-  next-door one.
-- **Meal duration (_m_)** — assumed time at table, used to test
-  still-open-at-finish. Fixed at **45 min** in v1 (lowered from 75 on
-  2026-06-29 — owner: real meals run ~45; `MEAL_DURATION_MIN` in goable.ts);
-  not user-facing.
-- **Good-time-to-go override** — a circle-shared, per-Place correction to
-  Maps hours: `closeBufferMin`, the minutes before posted close that the
-  place actually stops seating (0 = serves to the door; 120 = kitchen
-  closes ~2h early). Authoritative over both Maps posted hours and KITCHEN
-  secondary hours.
+  **Now / +15 / +30 / +60** chips (default **+15**). The chip is a **departure
+  buffer**; true arrival is per-place — `arrival(place) = now + n +
+  travel(place)` (Routes drive time, **shipped** 2026-06-29, §11.2 Q9) — so a
+  place 30 min away is tested 30 min later than a next-door one.
+- **Kitchen close** — the threshold the light turns on, by precedence: the
+  circle's **override** (`closeBufferMin` = minutes before posted close they
+  really stop seating; Baroni's 0 = "at close", Matt's 15) → Google **KITCHEN**
+  secondary hours if present → else **posted close − 45 min** (the unknown
+  default, `DEFAULT_KITCHEN_BUFFER_MIN`). Saved places get precise local
+  knowledge; unknowns go green→yellow in their last 45 min. Richer per-place
+  kitchen-close (absolute times; per-night for late bar hours — Home Team) is a
+  future iteration.
 - **No-go / block** — a circle-shared, per-Place flag that hard-excludes a
   Place from discovery and roulette; the explicit inverse of favoriting.
   Per-place only (no brand or category rules). _Planned — later chamber._
@@ -248,14 +253,12 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   go. Steps: open → grant location → choose **when** via
   **[Now] [+15] [+30] [+60]** chips (default **+15**, a travel-time proxy;
   the active chip shows the resolved arrival time, e.g. "+15 · 7:25") →
-  list + map of **go-able**
-  places (open at arrival _and_ still open at arrival + 45 min) → filter by
-  genre → tap a place. AC: results satisfy the §3 go-able test against the
-  selected offset and the fixed 45-min meal duration, evaluated in the
-  **place's** local time; opening-soon places included, places that close
-  before we'd finish excluded; a per-place good-time-to-go override (if set)
-  supersedes Maps hours, and KITCHEN secondary hours tighten the close only
-  when present and no override exists; places with no Maps hours show as
+  list + map of **go-able** places, each with a **🟢/🟡** badge → filter by
+  genre → tap a place. AC: each place is banded by the §3 traffic light
+  (🟢 arrive before kitchen close · 🟡 after kitchen close but ≤ posted close ·
+  🔴 after posted close / before open → hidden) against `now + chip + drive`,
+  evaluated in the **place's** local time; kitchen close = override > KITCHEN
+  secondary hours > posted − 45; places with no Maps hours show as
   **hours-unknown** (non-actionable badge; not auto-excluded); each result
   shows circle notes count + last visit if any. Candidates beyond a **100 km
   straight-line distance cap** from the user are dropped however go-able — a
@@ -372,8 +375,9 @@ budget** is the email alert. The split-billing trigger is in §13.3.
   per-API daily quota cap** (§8). AC: allowlisted Google sign-in works on
   the deployed URL; a probe read/write under rules succeeds.
 - **M2 — Discovery core + PWA shell.** Geolocation → one Nearby Search →
-  go-able filter (chips Now/+15/+30/+60 default +15, m=45, place-local time,
-  override > KITCHEN > posted), genre filter, installable manifest + service
+  go-able filter (🟢/🟡/🔴 by kitchen close; chips Now/+15/+30/+60 default +15;
+  place-local time; kitchen close = override > KITCHEN > posted−45), genre
+  filter, installable manifest + service
   worker.
   Depends on M1. **Fact-finder facts already gathered (§11.2 Q1–Q2).**
 - **M3 — Place detail + notes.** Place detail view; shared notes read/write.
@@ -417,19 +421,22 @@ budget** is the email alert. The split-billing trigger is in §13.3.
 
 ### 11.2 Open questions (non-blocking)
 
-1. **"Go-able" semantic — ✅ SETTLED 2026-06-26 (fact-finder + design
-   pass).** "Open" = go-able for a meal: open at arrival (now + _n_) AND
-   still open at finish (now + _n_ + _m_), same continuous interval.
-   Controls: **Now / +15 / +30 / +60** chips for _n_ (default **+15**, a
-   travel-time proxy); _m_ fixed at **45 min**, not user-facing. Override: a
-   single per-place
-   `closeBufferMin` delta (minutes before posted close), circle-shared,
-   precedence **override > KITCHEN secondary hours > posted hours**.
-   Evaluated in the place's local time; defensive past-midnight wrap; never
-   merge lunch/dinner periods; an override that would make a place never
-   go-able is **clamped + flagged**, not silently applied; hours-unknown
-   places are shown (non-actionable badge), not excluded. Folded into
-   §3 / §5 / §6 / §7 / §8.
+1. **"Go-able" semantic — ✅ SETTLED 2026-06-26; REWORKED to a traffic light
+   2026-06-29 (owner design pass).** Go-able = a real dinner option, a
+   **🟢/🟡/🔴 band** keyed on **kitchen close** (when they stop serving), not
+   the posted door-close: 🟢 arrive before kitchen close · 🟡 arrive after
+   kitchen close but ≤ posted close (cutting it close) · 🔴 arrive after posted
+   close or before open (hidden, search-reachable). **Kitchen close** by
+   precedence: per-place circle **override** (`closeBufferMin` = min before
+   posted; Baroni's 0, Matt's 15) > Google **KITCHEN** secondary hours > else
+   **posted − 45** (`DEFAULT_KITCHEN_BUFFER_MIN`, the unknown default). Arrival
+   `n` via **Now / +15 / +30 / +60** chips (default **+15**) **plus per-place
+   drive time** (Routes, §11.2 Q9). Evaluated in the place's local time;
+   defensive past-midnight wrap; never merge lunch/dinner periods; hours-
+   unknown places shown (non-actionable badge), not excluded. **Dropped from
+   the original:** the "meal must finish before close" requirement — being
+   seated before kitchen close suffices (Baroni's at 7:30 was wrongly excluded
+   by it). Folded into §3 / §5 / §6 / §7 / §8.
 2. **Places API surface — ✅ largely RESOLVED 2026-06-26 (fact-finder,
    high confidence, cited).** Use **Places API (New) v1**;
    `regularOpeningHours.periods[]` (Point: day 0–6, hour, minute; 24h omits
@@ -498,16 +505,19 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    per-meal** override (early-close weekends, to-the-door brunch), or does
    the single delta + free-text note suffice? _(v1: single delta; revisit
    only if usage shows day-varying gaps.)_
-8. **Meal duration _m_:** keep fixed at 45 min, or expose a per-place _m_ on
-   the override later? _(v1: fixed.)_
+8. **Unknown-place kitchen buffer:** keep the single 45-min default
+   (posted − 45 ⇒ the 🟢→🟡 line), or vary by cuisine (fast ~30 / slow ~60)?
+   _(v1: fixed 45 — no reliable fast/slow signal yet. For **known** places the
+   `closeBufferMin` override already records the real kitchen close.)_
 9. **Departure buffer + per-place travel time (future request,
    2026-06-26):** reinterpret the when-chip as "when do we want to *leave*"
    and add per-place travel time, so arrival is computed per place —
    `arrival(place) = now + departure_buffer + travel_time(place)` — then
-   test open-at-arrival AND open-at-arrival+_m_. Worked example: 7:00 now,
-   leave in 15, a place 30 min away → arrival 7:45; must be open at 7:45 and
-   still open ~9:00. **Travel estimate options:** (a) _lean_ — derive from
-   the straight-line distance already returned by Nearby Search ÷ an assumed
+   band it by the §3 traffic light. Worked example: 7:00 now, leave in 15, a
+   place 30 min away → arrival 7:45; 🟢 if 7:45 is before its kitchen close,
+   🟡 if after but still before posted close. **Travel estimate options:**
+   (a) _lean_ — derive from the straight-line distance already returned by
+   Nearby Search ÷ an assumed
    speed; no extra API call; rough but captures far-vs-near; (b) _accurate_
    — Routes / Distance Matrix per place (real walk/drive time, traffic) but
    a separate billed SKU × up to 20 places. UX shift: the home chip relabels
@@ -575,12 +585,13 @@ budget** is the email alert. The split-billing trigger is in §13.3.
 
 - Read **§5 (data model)** and **§6 (access control)** before writing any
   data-access or rules code; the access table maps 1:1 to Firestore rules.
-- The **go-able filter** is settled (§3 / §11.2 Q1): precedence
-  override > KITCHEN > posted; same continuous interval covers
-  [arrival, finish]; place-local time; defensive past-midnight wrap; never
-  merge lunch/dinner periods; clamp `closeBufferMin` to the interval start
-  and flag overrides that zero out a place. Keep chip re-filtering
-  client-side (§8).
+- The **go-able filter** is settled (§3 / §11.2 Q1): a 🟢/🟡/🔴 band keyed on
+  **kitchen close** = `closeBufferMin` override > KITCHEN secondary hours >
+  posted − 45 (`DEFAULT_KITCHEN_BUFFER_MIN`); 🟢 arrive before kitchen close,
+  🟡 between kitchen and posted close, 🔴 after posted / before open (dropped).
+  Arrival = `now + chip + drive`; place-local time; defensive past-midnight
+  wrap; never merge lunch/dinner periods; `evaluateGoable` is pure. Keep chip
+  re-filtering client-side (§8).
 - **Do not guess open questions (§11.2)** — they get a design conversation
   or a fact-finder pass, not an implementer's improvisation.
 - Any further brief touching Google Maps Platform gets a **fact-finder
