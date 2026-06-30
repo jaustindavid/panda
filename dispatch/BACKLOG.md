@@ -143,9 +143,11 @@ fire.
   go-able rework). **#1 Hours:** the detail screen lists Google's
   `weekdayDescriptions` (already in the response from the parent opening-hours
   field — just unmapped; now on `Place`, snapshotted on favorites too; live-
-  verified end-to-end). **#4 Maps link:** a "🧭 Directions" deep link by Place
-  ID (ToS-blessed). **#5 Why:** `evaluateGoable` now returns a plain-English
-  `why` ("You'd arrive ~8:50; kitchen closes ~8:45 — cutting it close" /
+  verified end-to-end). **#4 Maps link:** a "📍 Open in Maps" deep link to the
+  place's *page* by Place ID (not the directions view — place page keeps
+  Directions one tap away; ToS-blessed). **#5 Why:** `evaluateGoable` now
+  returns a plain-English `why` ("You'd arrive ~8:50; kitchen closes ~8:45 —
+  cutting it close" /
   "…after the 9:00 close"); tap the status badge (ⓘ) on detail to see it.
   Threaded `why` through `DiscoveryPlace` → detail (warm + cold). 77 tests
   (+5 explainer). _PRD §7 F3/F4._

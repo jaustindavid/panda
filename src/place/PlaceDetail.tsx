@@ -50,10 +50,13 @@ export function PlaceDetail({
   onChanged,
 }: PlaceDetailProps) {
   const [showWhy, setShowWhy] = useState(false)
-  // Directions in Google Maps — ToS-blessed deep link by Place ID (owner #4).
-  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+  // The place's *page* in Google Maps (not the directions view) — from there
+  // "Directions" is one obvious tap, whereas the directions page hides the
+  // place page behind a non-obvious back-swipe (owner #4). ToS-blessed Place-ID
+  // deep link.
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     place.name,
-  )}&destination_place_id=${place.id}`
+  )}&query_place_id=${place.id}`
   const hours = place.weekdayDescriptions ?? []
 
   return (
@@ -84,7 +87,7 @@ export function PlaceDetail({
             rel="noopener noreferrer"
             className="mt-1 inline-block text-sm text-sky-400"
           >
-            🧭 Directions
+            📍 Open in Maps
           </a>
         </div>
         <button
