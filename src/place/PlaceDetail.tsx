@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { formatDistance } from '../lib/distance.ts'
 import type { GoableStatus } from '../lib/goable.ts'
 import type { Place } from '../lib/places.ts'
@@ -12,6 +13,8 @@ interface PlaceDetailProps {
   /** Null when opened cold (deep link) without a known user location. */
   distanceMeters: number | null
   status: GoableStatus
+  /** Plain-English reason for the status (owner #5) — tap the badge to see. */
+  why?: string
   onBack: () => void
   /** Called after any change so discovery can re-pull. */
   onChanged?: () => void
@@ -42,9 +45,17 @@ export function PlaceDetail({
   genre,
   distanceMeters,
   status,
+  why,
   onBack,
   onChanged,
 }: PlaceDetailProps) {
+  const [showWhy, setShowWhy] = useState(false)
+  // Directions in Google Maps — ToS-blessed deep link by Place ID (owner #4).
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    place.name,
+  )}&destination_place_id=${place.id}`
+  const hours = place.weekdayDescriptions ?? []
+
   return (
     <div className="flex h-full flex-col gap-4">
       <button
@@ -67,13 +78,44 @@ export function PlaceDetail({
               {place.formattedAddress}
             </p>
           )}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-block text-sm text-sky-400"
+          >
+            🧭 Directions
+          </a>
         </div>
-        <StatusBadge status={status} />
+        <button
+          type="button"
+          onClick={() => why != null && setShowWhy((v) => !v)}
+          aria-expanded={why != null ? showWhy : undefined}
+          className="shrink-0"
+        >
+          <StatusBadge status={status} />
+          {why != null && <span className="ml-1 text-xs text-slate-500">ⓘ</span>}
+        </button>
       </div>
+      {why != null && showWhy && (
+        <p className="-mt-2 text-sm text-slate-400">{why}</p>
+      )}
 
       <PlaceActions place={place} onChanged={onChanged} />
 
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
+        {hours.length > 0 && (
+          <section>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+              Hours
+            </h2>
+            <ul className="mt-1 space-y-0.5 text-sm text-slate-300">
+              {hours.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </section>
+        )}
         <PlaceVisits placeId={place.id} onChanged={onChanged} />
         <OverrideControl placeId={place.id} onChanged={onChanged} />
         <NotesSection placeId={place.id} onChanged={onChanged} />

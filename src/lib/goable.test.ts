@@ -162,3 +162,31 @@ describe('evaluated in the place local time (timezone)', () => {
     expect(statusAt({ periods, utcOffsetMinutes: 0, nowMs: utc(7, 2, 0) })).toBe('red')
   })
 })
+
+describe('why (the detail explainer, owner #5)', () => {
+  const periods = [period(WED, 11, 0, WED, 22, 0)] // unknown ⇒ kitchen 21:15
+
+  it('green explains the kitchen is open', () => {
+    expect(evaluateGoable(input({ periods, nowMs: utc(7, 18, 0) })).why).toMatch(
+      /kitchen.*open/i,
+    )
+  })
+  it('yellow says cutting it close', () => {
+    expect(evaluateGoable(input({ periods, nowMs: utc(7, 21, 30) })).why).toMatch(
+      /cutting it close/i,
+    )
+  })
+  it('red after close names the close time', () => {
+    expect(evaluateGoable(input({ periods, nowMs: utc(7, 21, 50) })).why).toMatch(
+      /after the .* close/i,
+    )
+  })
+  it('red before open names the open time', () => {
+    expect(evaluateGoable(input({ periods, nowMs: utc(7, 9, 0) })).why).toMatch(
+      /before they open/i,
+    )
+  })
+  it('hours-unknown has no why', () => {
+    expect(evaluateGoable(input({ nowMs: utc(7, 18, 0) })).why).toBeUndefined()
+  })
+})

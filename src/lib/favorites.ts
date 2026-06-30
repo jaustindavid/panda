@@ -29,6 +29,7 @@ interface SavedPlaceDoc {
   utcOffsetMinutes?: number
   periods?: OpeningPeriod[] | null
   kitchenPeriods?: OpeningPeriod[] | null
+  weekdayDescriptions?: string[] | null
   addedByUid?: string
 }
 
@@ -43,6 +44,7 @@ function fromDoc(id: string, data: SavedPlaceDoc): Place {
     utcOffsetMinutes: data.utcOffsetMinutes ?? 0,
     periods: data.periods ?? undefined,
     kitchenPeriods: data.kitchenPeriods ?? undefined,
+    weekdayDescriptions: data.weekdayDescriptions ?? undefined,
   }
 }
 
@@ -67,6 +69,7 @@ export async function addFavorite(place: Place): Promise<void> {
     utcOffsetMinutes: place.utcOffsetMinutes,
     periods: place.periods ?? null,
     kitchenPeriods: place.kitchenPeriods ?? null,
+    weekdayDescriptions: place.weekdayDescriptions ?? null,
     addedByUid: user.uid,
     addedAt: serverTimestamp(),
     snapshotAt: serverTimestamp(),

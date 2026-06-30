@@ -138,6 +138,17 @@ fire.
 
 ## Done
 
+- `[x]` **Detail screen: posted hours · Maps link · "why not go-able"** [S] —
+  2026-06-29 (owner feedback #1/#4/#5, the troubleshooting layer for the
+  go-able rework). **#1 Hours:** the detail screen lists Google's
+  `weekdayDescriptions` (already in the response from the parent opening-hours
+  field — just unmapped; now on `Place`, snapshotted on favorites too; live-
+  verified end-to-end). **#4 Maps link:** a "🧭 Directions" deep link by Place
+  ID (ToS-blessed). **#5 Why:** `evaluateGoable` now returns a plain-English
+  `why` ("You'd arrive ~8:50; kitchen closes ~8:45 — cutting it close" /
+  "…after the 9:00 close"); tap the status badge (ⓘ) on detail to see it.
+  Threaded `why` through `DiscoveryPlace` → detail (warm + cold). 77 tests
+  (+5 explainer). _PRD §7 F3/F4._
 - `[x]` **Favorite / no-go mutual exclusion** [XS] — 2026-06-29 (owner FR —
   "can someone accidentally/prankily mark a favorite as do-not-go?"). The two
   toggles were independent, so a place could be **both** ★ and 🚫 at once, with

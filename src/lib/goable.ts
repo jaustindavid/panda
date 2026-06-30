@@ -60,6 +60,9 @@ export type GoableStatus = 'green' | 'yellow' | 'red' | 'hours-unknown'
 
 export interface GoableResult {
   status: GoableStatus
+  /** One-line plain-English "why" for the detail explainer (PRD §7, owner #5);
+   *  absent only when hours are unknown. */
+  why?: string
 }
 
 /** Minutes from the start of the week (Sunday 00:00) for a TimeOfWeek. */
@@ -127,9 +130,66 @@ function bandFor(
   return best
 }
 
+/** Week-minute → a place-local clock string, e.g. 1290 → "9:30 PM". */
+function clockOf(wm: number): string {
+  const m = ((Math.round(wm) % MINUTES_PER_DAY) + MINUTES_PER_DAY) % MINUTES_PER_DAY
+  let h = Math.floor(m / 60)
+  const ap = h < 12 ? 'AM' : 'PM'
+  h %= 12
+  if (h === 0) h = 12
+  return `${h}:${(m % 60).toString().padStart(2, '0')} ${ap}`
+}
+
+/** Min distance (week-minutes) from arrival to a period + which side it falls
+ *  on — for picking the period to explain and how. */
+function nearest(
+  openWM: number,
+  postedWM: number,
+  arrivalWM: number,
+): { dist: number; side: 'before' | 'in' | 'after' } {
+  let best: { dist: number; side: 'before' | 'in' | 'after' } = {
+    dist: Infinity,
+    side: 'after',
+  }
+  for (const shift of [-MINUTES_PER_WEEK, 0, MINUTES_PER_WEEK]) {
+    const a = arrivalWM + shift
+    const cand =
+      a < openWM
+        ? { dist: openWM - a, side: 'before' as const }
+        : a > postedWM
+          ? { dist: a - postedWM, side: 'after' as const }
+          : { dist: 0, side: 'in' as const }
+    if (cand.dist < best.dist) best = cand
+  }
+  return best
+}
+
+interface RelevantPeriod {
+  openWM: number
+  kitchenWM: number
+  postedWM: number
+  dist: number
+  side: 'before' | 'in' | 'after'
+}
+
+/** Plain-English reason for the band, anchored on the period nearest arrival. */
+function buildWhy(status: Band, arrivalWM: number, rel: RelevantPeriod): string {
+  const arrive = clockOf(arrivalWM)
+  if (status === 'green') {
+    return `You'd arrive ~${arrive}; the kitchen's open till ~${clockOf(rel.kitchenWM)}.`
+  }
+  if (status === 'yellow') {
+    return `You'd arrive ~${arrive}; the kitchen closes ~${clockOf(rel.kitchenWM)} (doors ${clockOf(rel.postedWM)}) — cutting it close.`
+  }
+  if (rel.side === 'before') {
+    return `You'd arrive ~${arrive}, before they open at ${clockOf(rel.openWM)}.`
+  }
+  return `You'd arrive ~${arrive}, after the ${clockOf(rel.postedWM)} close.`
+}
+
 /**
- * Evaluate the go-able traffic light for the requested arrival.
- * Pure: all time inputs are passed in (no Date.now()).
+ * Evaluate the go-able traffic light for the requested arrival, with a
+ * plain-English "why". Pure: all time inputs are passed in (no Date.now()).
  */
 export function evaluateGoable(input: GoableInput): GoableResult {
   const { periods, kitchenPeriods, closeBufferMin, utcOffsetMinutes } = input
@@ -150,6 +210,7 @@ export function evaluateGoable(input: GoableInput): GoableResult {
   const hasOverride = closeBufferMin !== undefined && closeBufferMin >= 0
 
   let best: Band = 'red'
+  let rel: RelevantPeriod | null = null
   for (const period of periods) {
     const posted = periodToInterval(period)
 
@@ -168,8 +229,13 @@ export function evaluateGoable(input: GoableInput): GoableResult {
 
     const band = bandFor(posted.openWM, kitchenWM, posted.closeWM, arrivalWM)
     if (RANK[band] < RANK[best]) best = band
-    if (best === 'green') break
+
+    // Track the period nearest arrival — it's the one we explain.
+    const near = nearest(posted.openWM, posted.closeWM, arrivalWM)
+    if (rel === null || near.dist < rel.dist) {
+      rel = { openWM: posted.openWM, kitchenWM, postedWM: posted.closeWM, ...near }
+    }
   }
 
-  return { status: best }
+  return { status: best, why: rel ? buildWhy(best, arrivalWM, rel) : undefined }
 }

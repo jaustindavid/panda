@@ -44,6 +44,9 @@ export interface Place {
   utcOffsetMinutes: number
   periods?: OpeningPeriod[]
   kitchenPeriods?: OpeningPeriod[]
+  /** Google's human-readable per-day hours, e.g. "Monday: 9:00 AM – 9:00 PM"
+   *  (current-preferred). Display only — for the detail screen (owner #1). */
+  weekdayDescriptions?: string[]
 }
 
 interface RawPoint {
@@ -67,9 +70,9 @@ interface RawPlace {
   primaryType?: string
   types?: string[]
   utcOffsetMinutes?: number
-  currentOpeningHours?: { periods?: RawPeriod[] }
+  currentOpeningHours?: { periods?: RawPeriod[]; weekdayDescriptions?: string[] }
   currentSecondaryOpeningHours?: RawSecondaryHours[]
-  regularOpeningHours?: { periods?: RawPeriod[] }
+  regularOpeningHours?: { periods?: RawPeriod[]; weekdayDescriptions?: string[] }
   regularSecondaryOpeningHours?: RawSecondaryHours[]
 }
 interface RawResponse {
@@ -244,5 +247,8 @@ export function mapPlace(raw: RawPlace): Place {
       ? raw.currentOpeningHours.periods
       : raw.regularOpeningHours?.periods,
     kitchenPeriods: kitchen?.periods,
+    weekdayDescriptions:
+      raw.currentOpeningHours?.weekdayDescriptions ??
+      raw.regularOpeningHours?.weekdayDescriptions,
   }
 }

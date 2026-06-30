@@ -20,6 +20,8 @@ export interface DiscoveryPlace {
   /** Drive time from the user, seconds (Routes matrix). Absent ⇒ unknown. */
   travelSeconds?: number
   genre: string
+  /** Plain-English "why" for the band (detail explainer, owner #5). */
+  why?: string
 }
 
 export interface RankOptions {
@@ -70,6 +72,7 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
       distanceMeters,
       travelSeconds: driveSec ?? undefined,
       genre: genreLabel(place),
+      why: result.why,
     })
   }
 

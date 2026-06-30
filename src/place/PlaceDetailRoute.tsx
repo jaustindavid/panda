@@ -4,7 +4,6 @@ import { useDiscoveryData } from '../discovery/discovery-context.ts'
 import { getPlaceDetails } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
 import { evaluateGoable } from '../lib/goable.ts'
-import type { GoableStatus } from '../lib/goable.ts'
 import { genreLabel } from '../lib/genre.ts'
 import { haversineMeters } from '../lib/distance.ts'
 import { PlaceDetail } from './PlaceDetail.tsx'
@@ -49,6 +48,7 @@ export function PlaceDetailRoute() {
         genre={fromList.genre}
         distanceMeters={fromList.distanceMeters}
         status={fromList.status}
+        why={fromList.why}
         onBack={back}
         onChanged={d.reloadCircleData}
       />
@@ -70,14 +70,14 @@ export function PlaceDetailRoute() {
   }
 
   // Cold deep-link: build the view from the fetched place.
-  const status: GoableStatus = evaluateGoable({
+  const goable = evaluateGoable({
     periods: fetched.periods,
     kitchenPeriods: fetched.kitchenPeriods,
     closeBufferMin: d.overrides[fetched.id],
     utcOffsetMinutes: fetched.utcOffsetMinutes,
     nowMs: d.nowMs,
     arrivalOffsetMin: d.offset,
-  }).status
+  })
   const distance = d.coords ? haversineMeters(d.coords, fetched.location) : null
 
   return (
@@ -85,7 +85,8 @@ export function PlaceDetailRoute() {
       place={fetched}
       genre={genreLabel(fetched)}
       distanceMeters={distance}
-      status={status}
+      status={goable.status}
+      why={goable.why}
       onBack={back}
       onChanged={d.reloadCircleData}
     />
