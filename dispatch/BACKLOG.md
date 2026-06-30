@@ -128,8 +128,28 @@ fire.
   circle (push, ephemerality, privacy controls). Big; only if asked for.
 - `[ ]` **Invite-link onboarding** [M] — replace manual allowlist edits
   (PRD §11.2 Q4) with invite links.
-- `[ ]` **Per-day / per-meal override granularity** [M] — only if usage
-  shows day-varying kitchen gaps (PRD §11.2 Q7).
+- `[ ]` **Per-day "latest walk-in" override** [M] — owner 2026-06-30. Replace
+  the single `closeBufferMin` delta with the thing we actually know: **"the
+  latest we can walk in," one absolute clock time per day-of-week** (Mon–Sun,
+  each optional). That time **is** the kitchen-close / 🟢→🟡 line for that day.
+  **Why absolute + per-day:** matches how we hold the knowledge ("we can walk
+  in till 9:45"), sidesteps a wrong/variable posted close, and per-day captures
+  the real cases — **Home Team** (kitchen ~9:45 weeknights, late Fri/Sat for
+  the bar), early-close Sundays. Drops the per-meal idea from Q7: one "latest
+  walk-in" per day is the day's final cutoff, which is what dinner discovery
+  needs.
+  - **Data:** `overrides/{placeId}` gains `lastWalkInByDay` — a sparse map of
+    day-of-week (0–6) → minutes-since-midnight, place-local. A day with no
+    value falls back to the default kitchen close (KITCHEN hours → posted−45).
+    Circle-shared (any member), as today.
+  - **Go-able:** kitchen-close precedence becomes **per-day lastWalkIn >
+    KITCHEN > posted−45**; clamp into [open, posted]; handle past-midnight
+    periods (a Fri-night "1:30" means Sat 01:30 within that period).
+  - **UI:** `OverrideControl` on the detail screen becomes a 7-day editor (each
+    day an optional time; blank = default), replacing the single-delta presets.
+  - **Migration:** retire / convert any existing `closeBufferMin` overrides.
+  _Refines PRD §11.2 Q7; the "richer kitchen-close" follow-on to the 2026-06-29
+  traffic-light rework._
 - `[ ]` **Speculative chambers** [M–XL] — custom tags, saved lists,
   multi-circle, brand/category-level blocking, per-place meal-duration
   (PRD §1.3, §11.2 Q8). File real versions when demand appears.

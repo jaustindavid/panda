@@ -501,10 +501,15 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    notes/visits? _(proposed: plain random, no weighting, v1)_
 6. **Offline scope:** what must work without network — app shell only, or
    cached recent visits / notes too?
-7. **Override granularity:** does any real circle place need **per-day /
-   per-meal** override (early-close weekends, to-the-door brunch), or does
-   the single delta + free-text note suffice? _(v1: single delta; revisit
-   only if usage shows day-varying gaps.)_
+7. **Override granularity — DESIGN REFINED 2026-06-30 (owner).** Replace the
+   single `closeBufferMin` delta with **"the latest we can walk in," one
+   absolute clock time per day-of-week** (Mon–Sun, each optional) — that time
+   is the kitchen-close / 🟢→🟡 line. Per-day, **not** per-meal (one daily
+   cutoff is what dinner discovery needs); absolute, not a delta (matches local
+   knowledge, sidesteps a wrong posted close). Captures Home Team (late Fri/Sat
+   bar), early-close Sundays. v1 still ships the single delta; this is the
+   planned follow-on (fleshed out in BACKLOG). _(Was: single delta vs
+   per-day/per-meal — answered.)_
 8. **Unknown-place kitchen buffer:** keep the single 45-min default
    (posted − 45 ⇒ the 🟢→🟡 line), or vary by cuisine (fast ~30 / slow ~60)?
    _(v1: fixed 45 — no reliable fast/slow signal yet. For **known** places the
