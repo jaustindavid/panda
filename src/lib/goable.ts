@@ -12,6 +12,11 @@
 const MINUTES_PER_DAY = 1440
 const MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY
 
+/** Meal duration m (minutes): how long we assume you'll sit, added to arrival
+ *  to test still-open-at-finish. Fixed in v1, not user-facing. Single source
+ *  of truth — both discovery ranking and the cold detail route use this. */
+export const MEAL_DURATION_MIN = 45
+
 /** A point in the weekly schedule. day: 0 = Sunday … 6 = Saturday (Places). */
 export interface TimeOfWeek {
   day: number
@@ -41,7 +46,7 @@ export interface GoableInput {
   nowMs: number
   /** Arrival offset n (chip), minutes from now. */
   arrivalOffsetMin: number
-  /** Meal duration m, minutes (fixed 75 in v1). */
+  /** Meal duration m, minutes (fixed — see MEAL_DURATION_MIN). */
   mealDurationMin: number
 }
 

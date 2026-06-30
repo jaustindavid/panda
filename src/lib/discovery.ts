@@ -1,6 +1,6 @@
 import type { LatLng } from './distance.ts'
 import { haversineMeters } from './distance.ts'
-import { evaluateGoable } from './goable.ts'
+import { evaluateGoable, MEAL_DURATION_MIN } from './goable.ts'
 import type { GoableStatus } from './goable.ts'
 import { genreLabel } from './genre.ts'
 import type { Place } from './places.ts'
@@ -46,7 +46,7 @@ export interface RankOptions {
  */
 export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
   const { places, origin, nowMs, arrivalOffsetMin } = opts
-  const mealDurationMin = opts.mealDurationMin ?? 75
+  const mealDurationMin = opts.mealDurationMin ?? MEAL_DURATION_MIN
 
   const out: DiscoveryPlace[] = []
   for (const place of places) {

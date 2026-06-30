@@ -133,7 +133,9 @@ meal-duration; brand/category-level blocking (if per-place proves tedious).
   — so a place 30 min away is tested for open-on-arrival 30 min later than a
   next-door one.
 - **Meal duration (_m_)** — assumed time at table, used to test
-  still-open-at-finish. Fixed at **75 min** in v1; not user-facing.
+  still-open-at-finish. Fixed at **45 min** in v1 (lowered from 75 on
+  2026-06-29 — owner: real meals run ~45; `MEAL_DURATION_MIN` in goable.ts);
+  not user-facing.
 - **Good-time-to-go override** — a circle-shared, per-Place correction to
   Maps hours: `closeBufferMin`, the minutes before posted close that the
   place actually stops seating (0 = serves to the door; 120 = kitchen
@@ -247,9 +249,9 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   **[Now] [+15] [+30] [+60]** chips (default **+15**, a travel-time proxy;
   the active chip shows the resolved arrival time, e.g. "+15 · 7:25") →
   list + map of **go-able**
-  places (open at arrival _and_ still open at arrival + 75 min) → filter by
+  places (open at arrival _and_ still open at arrival + 45 min) → filter by
   genre → tap a place. AC: results satisfy the §3 go-able test against the
-  selected offset and the fixed 75-min meal duration, evaluated in the
+  selected offset and the fixed 45-min meal duration, evaluated in the
   **place's** local time; opening-soon places included, places that close
   before we'd finish excluded; a per-place good-time-to-go override (if set)
   supersedes Maps hours, and KITCHEN secondary hours tighten the close only
@@ -370,7 +372,7 @@ budget** is the email alert. The split-billing trigger is in §13.3.
   per-API daily quota cap** (§8). AC: allowlisted Google sign-in works on
   the deployed URL; a probe read/write under rules succeeds.
 - **M2 — Discovery core + PWA shell.** Geolocation → one Nearby Search →
-  go-able filter (chips Now/+15/+30/+60 default +15, m=75, place-local time,
+  go-able filter (chips Now/+15/+30/+60 default +15, m=45, place-local time,
   override > KITCHEN > posted), genre filter, installable manifest + service
   worker.
   Depends on M1. **Fact-finder facts already gathered (§11.2 Q1–Q2).**
@@ -419,7 +421,7 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    pass).** "Open" = go-able for a meal: open at arrival (now + _n_) AND
    still open at finish (now + _n_ + _m_), same continuous interval.
    Controls: **Now / +15 / +30 / +60** chips for _n_ (default **+15**, a
-   travel-time proxy); _m_ fixed at **75 min**, not user-facing. Override: a
+   travel-time proxy); _m_ fixed at **45 min**, not user-facing. Override: a
    single per-place
    `closeBufferMin` delta (minutes before posted close), circle-shared,
    precedence **override > KITCHEN secondary hours > posted hours**.
@@ -496,7 +498,7 @@ budget** is the email alert. The split-billing trigger is in §13.3.
    per-meal** override (early-close weekends, to-the-door brunch), or does
    the single delta + free-text note suffice? _(v1: single delta; revisit
    only if usage shows day-varying gaps.)_
-8. **Meal duration _m_:** keep fixed at 75 min, or expose a per-place _m_ on
+8. **Meal duration _m_:** keep fixed at 45 min, or expose a per-place _m_ on
    the override later? _(v1: fixed.)_
 9. **Departure buffer + per-place travel time (future request,
    2026-06-26):** reinterpret the when-chip as "when do we want to *leave*"

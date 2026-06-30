@@ -103,7 +103,7 @@ describe('availableGenres', () => {
 })
 
 describe('rankDiscovery travel time (Q9)', () => {
-  // Open Wed 11:00–19:00; "now" Wed 17:00, chip 0, 75-min meal.
+  // Open Wed 11:00–19:00; "now" Wed 17:00, chip 0, 45-min meal (default).
   const open11to19 = [
     { open: { day: WED, hour: 11, minute: 0 }, close: { day: WED, hour: 19, minute: 0 } },
   ]
@@ -111,14 +111,14 @@ describe('rankDiscovery travel time (Q9)', () => {
   const p = place('p', 0.01, 'pizza_restaurant', open11to19)
   const base = { places: [p], origin: { latitude: 0, longitude: 0 }, nowMs: now }
 
-  it('no travel data: go-able (arrive 17:00, finish 18:15 ≤ 19:00)', () => {
+  it('no travel data: go-able (arrive 17:00, finish 17:45 ≤ 19:00)', () => {
     expect(rankDiscovery({ ...base, arrivalOffsetMin: 0 }).map((d) => d.status)).toEqual([
       'goable',
     ])
   })
 
   it('a long drive pushes finish past close → not go-able', () => {
-    // 90-min drive → arrive 18:30, finish 19:45 > 19:00.
+    // 90-min drive → arrive 18:30, finish 19:15 > 19:00.
     const r = rankDiscovery({ ...base, arrivalOffsetMin: 0, travelSecondsById: { p: 90 * 60 } })
     expect(r).toEqual([])
   })
