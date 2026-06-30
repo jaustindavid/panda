@@ -38,6 +38,27 @@ clear; nothing in flight. Owner picks the next item from Later.
 Committed and speculative chambers, post-core. Move to Soon as triggers
 fire.
 
+- `[ ]` **"Meal at <future time>" — pick an arrival clock time** [M] — owner
+  FR 2026-06-29. Concept: it's 5pm, *where could we go at 7:30?* Today the
+  "when" control is **relative** (Now / +15 / +30 / +60, i.e. "leave in N");
+  add an **absolute target arrival time** ("dinner at 7:30"). **Cheap —
+  client-side re-eval over the already-fetched set, NO new Maps call** (like
+  the chip re-filter; drive times are traffic-unaware so they don't change with
+  the target). The go-able core already takes any offset (`evaluateGoable` =
+  `nowMs` plus offset, full day/week wrap), so it's a UI + semantics job, not a
+  core change. **Semantics (decided in discussion):** "dinner at 7:30" = *be
+  seated at 7:30* → go-able ⇔ open across `[target, target+75min meal]`; the
+  target is hours out, so **drive time stops gating** (everything within the
+  100 km cap is reachable by then) and becomes informational ("≈20 min, leave
+  by ~7:10"). Impl: in target mode pass `offset = target − now` and **do not
+  add drive** to arrival (drive only gates the imminent chips). **Optional
+  unification (follow-on, not v1):** treat all when-controls as "arrive by"
+  with `arrival = later of {target, now+drive}` — one model for imminent and
+  planned, but it reinterprets today's chips from "leave in" to "arrive by"
+  (needs owner nod). **UI:** a "Later…" affordance beside the chips → clock
+  picker or evening presets (6/7/8/9 PM); label → "Arriving around 7:30"; a
+  today-vs-tomorrow rule for times already past. _PRD §3 / §7 F1 (when-chips);
+  relates to travel-time §11.2 Q9._
 - `[ ]` **"Search this area" exempt from the distance cap** [S] — owner FR
   2026-06-29. The 100 km cap (§7 F1) is measured from the user's **GPS**, so
   panning "search this area" >100 km away returns empty — the explicitly
