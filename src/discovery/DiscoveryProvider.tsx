@@ -14,6 +14,8 @@ import { listAllNotes } from '../lib/notes.ts'
 import { listVisits } from '../lib/visits.ts'
 import { loadNoGoIds } from '../lib/nogo.ts'
 import { loadFavorites } from '../lib/favorites.ts'
+import { isBlockedBrand, loadBlockedBrands } from '../lib/blockedBrands.ts'
+import type { BlockedBrand } from '../lib/blockedBrands.ts'
 import { DiscoveryContext } from './discovery-context.ts'
 import type { DiscoveryData } from './discovery-context.ts'
 
@@ -51,6 +53,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const [annotations, setAnnotations] = useState<Record<string, PlaceAnnotation>>({})
   const [favoritePlaces, setFavoritePlaces] = useState<Place[]>([])
   const [nogoIds, setNogoIds] = useState<Set<string>>(new Set())
+  const [blockedBrands, setBlockedBrands] = useState<BlockedBrand[]>([])
   const [circleRefresh, setCircleRefresh] = useState(0)
   // Override search center for "search this area"; falls back to user GPS.
   const [searchOverride, setSearchOverride] = useState<LatLng | null>(null)
@@ -101,13 +104,15 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       listVisits(),
       loadNoGoIds(),
       loadFavorites(),
+      loadBlockedBrands(),
     ])
-      .then(([ov, notes, visits, nogos, favs]) => {
+      .then(([ov, notes, visits, nogos, favs, brands]) => {
         if (cancelled) return
         setOverrides(ov)
         setAnnotations(buildAnnotations(notes, visits))
         setNogoIds(nogos)
         setFavoritePlaces(favs)
+        setBlockedBrands(brands)
       })
       .catch(() => undefined)
     return () => {
@@ -172,12 +177,15 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       overrides,
       travelSecondsById: driveSecondsById,
     })
-    return r.filter((d) => !nogoIds.has(d.place.id))
+    return r.filter(
+      (d) => !nogoIds.has(d.place.id) && !isBlockedBrand(d.place.name, blockedBrands),
+    )
   }, [
     places,
     favoritePlaces,
     extraPlaces,
     nogoIds,
+    blockedBrands,
     geo.coords,
     nowMs,
     offset,
@@ -243,6 +251,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     overrides,
     favoriteIds,
     nogoIds,
+    blockedBrands,
     offset,
     setOffset: chooseOffset,
     targetMinOfDay,

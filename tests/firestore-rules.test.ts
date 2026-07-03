@@ -216,6 +216,26 @@ describe('savedPlaces — read/write: any member', () => {
   })
 })
 
+describe('blockedBrands — read/create/delete: any member', () => {
+  const brand = { name: 'Walmart', blockedByUid: MEMBER_UID, blockedAt: 1000 }
+
+  it('allows any member to block a chain', async () => {
+    await assertSucceeds(setDoc(doc(member(), 'blockedBrands/walmart'), brand))
+  })
+  it('denies a non-member blocking', async () => {
+    await assertFails(setDoc(doc(stranger(), 'blockedBrands/walmart'), brand))
+  })
+  it('allows any member to read + unblock (delete)', async () => {
+    await seed('blockedBrands/walmart', brand)
+    await assertSucceeds(getDoc(doc(member(), 'blockedBrands/walmart')))
+    await assertSucceeds(deleteDoc(doc(member(), 'blockedBrands/walmart')))
+  })
+  it("unblocks a chain another member blocked", async () => {
+    await seed('blockedBrands/walmart', { ...brand, blockedByUid: OTHER_UID })
+    await assertSucceeds(deleteDoc(doc(member(), 'blockedBrands/walmart')))
+  })
+})
+
 describe('feedback — read: members; create: self; immutable', () => {
   const fb = { authorUid: MEMBER_UID, authorName: 'Austin', text: 'love it' }
 

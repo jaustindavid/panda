@@ -6,6 +6,7 @@ import { searchTextRestaurants } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
 import { genreLabel } from '../lib/genre.ts'
 import { addFavorite, removeFavorite } from '../lib/favorites.ts'
+import { isBlockedBrand } from '../lib/blockedBrands.ts'
 
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
@@ -27,7 +28,10 @@ export function AddByNameScreen() {
     setBusy(true)
     setError(null)
     try {
-      setResults(await searchTextRestaurants(q, MAPS_KEY, d.coords))
+      const found = await searchTextRestaurants(q, MAPS_KEY, d.coords)
+      // Never surface a blocked chain — you already said you'll never want it
+      // recommended, so don't offer it to favorite either (PRD §11.2 Q11).
+      setResults(found.filter((p) => !isBlockedBrand(p.name, d.blockedBrands)))
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {

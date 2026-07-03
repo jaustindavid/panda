@@ -130,14 +130,45 @@ fire.
   _Refines PRD §11.2 Q7; the "richer kitchen-close" follow-on to the 2026-06-29
   traffic-light rework._
 - `[ ]` **Speculative chambers** [M–XL] — custom tags, saved lists,
-  multi-circle, brand/category-level blocking (PRD §1.3). File real versions
-  when demand appears. _(Per-place meal-duration dropped 2026-06-30 —
-  superseded by the kitchen-close / per-day "latest walk-in" model.)_
+  multi-circle, **category**-level blocking (blanket-block a Maps type, not a
+  named chain — no type fits "hotel restaurant" either, so still genuinely
+  hard) (PRD §1.3). File real versions when demand appears. _(Per-place
+  meal-duration dropped 2026-06-30 — superseded by the kitchen-close / per-day
+  "latest walk-in" model. Brand-level blocking dropped 2026-07-02 — shipped,
+  see Done.)_
 
 ---
 
 ## Done
 
+- `[x]` **Block a whole chain by name** [M] — 2026-07-02 (owner FR, filed via
+  in-app feedback: "We need the blacklist. Walmart, for instance" — surfaced
+  by repeatedly no-go'ing individual Walmarts). **Fact-checked live:** the
+  Places API has **no chain/brand ID or filter** anywhere (Place resource,
+  Nearby Search, Text Search) — confirmed against Google's docs, so
+  "duplicate detection" would be an unreliable, extra-billed proxy for a fact
+  the owner already knows by eye. Built **name-based blocking** instead: a new
+  `blockedBrands` collection (circle-shared; doc id = normalized name, so
+  re-blocking overwrites, not dupes), matched as a **case-insensitive
+  substring** against place names, applied everywhere — discovery ranking,
+  roulette (inherits from ranking), and add-by-name results. Diagnosed live:
+  Walmart Supercenter is `primaryType: department_store` but its `types[]`
+  includes `bakery` (an accurate in-store counter) — explains why the eatery-
+  type broadening (§11.2 Q11) let it surface. A **category/primaryType**
+  exclusion would still miss the sneakier case: Google has a **literal
+  separate Place "Walmart Bakery,"** `primaryType: bakery` — a name match
+  catches it, a type-based fix never could. **UI:** a "🚫 Block this chain"
+  quick action on the detail screen (`PlaceActions`, pre-filled with the exact
+  place name, editable — owner: "let's see how that goes" on not guessing a
+  trimmed brand), plus a small "🚫 Chains" management screen
+  (`BlockedBrandsScreen`, list + add/remove) linked from the discovery utility
+  row. **Blocking atomically clears any matching favorite** (owner: yes — same
+  mutual-exclusion instinct as favorite/no-go). `src/lib/blockedBrands.ts` +
+  5 unit tests (83 total); rules: any member read/create/delete (collective,
+  like no-go) + 4 emulator tests (37 total). Gates green; boots clean (no
+  regression) — the UI itself is behind sign-in, owner-verified on-device.
+  _PRD §7 F7 (was §1.3 speculative "brand/category-level blocking" — brand
+  half now shipped; category-level blocking remains genuinely hard/parked)._
 - `[x]` **"Meal at <time>" — absolute target arrival** [M] — 2026-06-30 (owner
   FR). Alongside the relative Now/+15/+30/+60 chips, an **"Arrive at" time**
   ("dinner at 7:30") in `WhenChips`. Re-derived for the traffic-light model:

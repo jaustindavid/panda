@@ -3,6 +3,7 @@ import type { LatLng } from '../lib/distance.ts'
 import type { DiscoveryPlace } from '../lib/discovery.ts'
 import type { PlaceAnnotation } from '../lib/annotations.ts'
 import type { GeoStatus } from '../hooks/useGeolocation.ts'
+import type { BlockedBrand } from '../lib/blockedBrands.ts'
 
 /** Discovery state shared across routes (list / detail / visits) so a single
  *  Nearby Search persists for the app session — back/forward never re-fetch. */
@@ -24,6 +25,9 @@ export interface DiscoveryData {
   favoriteIds: Set<string>
   /** Blocked Place IDs (detail toggle; already excluded from ranked). */
   nogoIds: Set<string>
+  /** Blocked chains/brands (e.g. "Walmart"); already excluded from ranked —
+   *  add-by-name filters its own results against this too. */
+  blockedBrands: BlockedBrand[]
 
   /** The "leave in" chip offset (minutes); setOffset also exits target mode. */
   offset: number

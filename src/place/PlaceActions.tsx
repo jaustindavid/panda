@@ -3,11 +3,14 @@ import { useDiscoveryData } from '../discovery/discovery-context.ts'
 import type { Place } from '../lib/places.ts'
 import { addFavorite, removeFavorite } from '../lib/favorites.ts'
 import { addNoGo, removeNoGo } from '../lib/nogo.ts'
+import { addBlockedBrand, isBlockedBrand } from '../lib/blockedBrands.ts'
 
-/** Save-as-favorite (★, PRD §7 F8) + never-show/no-go (🚫, F7) toggles.
- *  Both are circle-shared per-place flags any member can set, and **mutually
- *  exclusive** — saving clears a block and vice versa (enforced atomically in
- *  the lib; the post-action reloadCircleData refreshes both buttons). */
+/** Save-as-favorite (★, PRD §7 F8) + never-show/no-go (🚫, F7) toggles, plus a
+ *  "block this chain" quick action (🚫 by name, PRD §11.2 Q11 follow-on) for
+ *  places you'll never want recommended anywhere (Walmart, Starbucks, …).
+ *  Favorite/no-go are circle-shared and **mutually exclusive** — saving clears
+ *  a block and vice versa (enforced atomically in the lib; the post-action
+ *  reloadCircleData refreshes all three). */
 export function PlaceActions({
   place,
   onChanged,
@@ -18,9 +21,12 @@ export function PlaceActions({
   const d = useDiscoveryData()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [blockingChain, setBlockingChain] = useState(false)
+  const [chainName, setChainName] = useState(place.name)
 
   const isFav = d.favoriteIds.has(place.id)
   const isBlocked = d.nogoIds.has(place.id)
+  const chainBlocked = isBlockedBrand(place.name, d.blockedBrands)
 
   async function run(fn: () => Promise<void>) {
     setBusy(true)
@@ -36,8 +42,15 @@ export function PlaceActions({
     }
   }
 
+  async function handleBlockChain() {
+    const name = chainName.trim()
+    if (name === '') return
+    await run(() => addBlockedBrand(name))
+    setBlockingChain(false)
+  }
+
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <button
           type="button"
@@ -70,6 +83,46 @@ export function PlaceActions({
           {isBlocked ? '🚫 Blocked' : 'Never show'}
         </button>
       </div>
+
+      {chainBlocked ? (
+        <p className="text-xs text-slate-500">🚫 Part of a blocked chain</p>
+      ) : blockingChain ? (
+        <div className="flex gap-2">
+          <input
+            value={chainName}
+            onChange={(e) => setChainName(e.target.value)}
+            placeholder="Chain name…"
+            className="min-w-0 flex-1 rounded-full bg-slate-900 px-3 py-1.5 text-sm outline-none placeholder:text-slate-600"
+          />
+          <button
+            type="button"
+            disabled={busy || chainName.trim() === ''}
+            onClick={() => void handleBlockChain()}
+            className="shrink-0 rounded-full bg-rose-500/20 px-3 py-1.5 text-sm font-medium text-rose-200 disabled:opacity-50"
+          >
+            Block
+          </button>
+          <button
+            type="button"
+            onClick={() => setBlockingChain(false)}
+            className="shrink-0 text-sm text-slate-400"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setChainName(place.name)
+            setBlockingChain(true)
+          }}
+          className="self-start text-xs text-slate-500"
+        >
+          🚫 Block this chain
+        </button>
+      )}
+
       {error != null && <p className="text-sm text-red-400">{error}</p>}
     </div>
   )

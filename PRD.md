@@ -69,9 +69,10 @@ Tracked in BACKLOG.md once the kit scaffolding lands.
 - **No-go list** — a circle-shared, **per-place** block (one-tap "never
   show"; the explicit inverse of favoriting) that hard-excludes a Place from
   discovery and roulette. Per-place only in v1 scope — no brand-name or
-  category rules (there's no chain/brand ID in the Places API, and "hotel
+  category **rules** (there's no chain/brand ID in the Places API, and "hotel
   restaurant" isn't a Maps type). Schema sketched in §5; ships after the
-  M1–M5 core.
+  M1–M5 core. _A brand **name-match** block (not an ID/rule — confirmed none
+  exists) shipped as a follow-on, §7 F7._
 - **Add restaurants by name (saved favorites)** _(owner FR 2026-06-28)_ —
   a circle-shared, **per-place** saved set: search a place **by name**
   (Places **Text Search**, a new surface) → store its **Place ID** → it
@@ -84,9 +85,11 @@ Tracked in BACKLOG.md once the kit scaffolding lands.
   naturally with **M5 roulette**.
 
 **Speculative candidate chambers:** live "here now" presence; invite-link
-onboarding; custom tags; multi-circle; saved lists; per-day/per-meal
-override granularity; holiday-aware hours (`currentOpeningHours`); per-place
-meal-duration; brand/category-level blocking (if per-place proves tedious).
+onboarding; custom tags; multi-circle; saved lists; **category**-level
+blocking (e.g. blanket-blocking a Maps type, not a named chain — no Maps type
+fits "hotel restaurant" either, so still genuinely hard). _Brand-level
+blocking shipped 2026-07-02 (name-match, §7 F7) once per-place blocking did
+prove tedious — owner: "I find myself marking a lot of Wal\*Mart"._
 
 ### 1.4 Philosophical commitments
 
@@ -152,7 +155,9 @@ meal-duration; brand/category-level blocking (if per-place proves tedious).
   future iteration.
 - **No-go / block** — a circle-shared, per-Place flag that hard-excludes a
   Place from discovery and roulette; the explicit inverse of favoriting.
-  Per-place only (no brand or category rules). _Planned — later chamber._
+  **Shipped.** Plus a **blocked-chains** name-match list (e.g. "Walmart") that
+  excludes everywhere by substring, since no brand/chain ID exists to build a
+  rule on — also shipped, §7 F7.
 - **Roulette** — random pick from the current go-able + genre-filtered
   result set.
 
@@ -298,7 +303,17 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   mutually exclusive** — blocking clears any save and vice versa, enforced
   atomically (a place is "always include" XOR "always exclude"); this prevents
   the accidental/prank both-state where no-go would silently win (owner FR,
-  2026-06-29). _Ships post-core (§1.3)._
+  2026-06-29). **Block a whole chain by name — SHIPPED 2026-07-02** (owner FR:
+  "I'll never want Walmart or Starbucks recommended," surfaced after
+  repeatedly no-go'ing individual Walmarts). Verified live: the Places API has
+  **no chain/brand ID or filter** anywhere (Nearby, Text Search, Place
+  resource) — so `blockedBrands` is a circle-shared list of name fragments,
+  matched as a **case-insensitive substring** against every place name
+  everywhere (discovery, roulette, add-by-name). This also catches Google's
+  own chain sub-places a category filter couldn't — e.g. a literal **"Walmart
+  Bakery"** Place, `primaryType: bakery`, that Google itself created for the
+  in-store counter. Blocking a chain atomically clears any matching favorite.
+  _Ships post-core (§1.3)._
 - **F8 — Add by name (later chamber; owner FR 2026-06-28).** Goal: keep a
   "not close" favorite in the rotation. Steps: search a restaurant **by
   name** (Places Text Search) → pick it → it's saved (Place ID) for the

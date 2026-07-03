@@ -80,6 +80,15 @@ service cloud.firestore {
         && request.resource.data.authorUid == request.auth.uid;
     }
 
+    // BlockedBrand — circle-shared chain/brand block (e.g. "Walmart"), matched
+    // client-side as a name substring everywhere (PRD §11.2 Q11 follow-on).
+    // read/create/delete: any member (collective; not author-locked). Doc id
+    // = a normalized (lowercased) name, so re-blocking overwrites, not dupes.
+    match /blockedBrands/{brandId} {
+      allow read: if isMember();
+      allow create, delete: if isMember();
+    }
+
     // Everything else is denied. Unmatched paths default-deny; this is the
     // explicit baseline.
     match /{document=**} {

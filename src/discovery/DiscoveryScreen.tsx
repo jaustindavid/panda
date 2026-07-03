@@ -127,6 +127,13 @@ export function DiscoveryScreen() {
         </button>
         <button
           type="button"
+          onClick={() => navigate('/blocked-chains')}
+          className="text-slate-400"
+        >
+          🚫 Chains
+        </button>
+        <button
+          type="button"
           onClick={() => setView(view === 'map' ? 'list' : 'map')}
           className="ml-auto rounded-full bg-slate-800 px-3 py-1 font-medium text-slate-300"
         >
