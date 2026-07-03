@@ -6,7 +6,6 @@ import { searchTextRestaurants } from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
 import { genreLabel } from '../lib/genre.ts'
 import { addFavorite, removeFavorite } from '../lib/favorites.ts'
-import { isBlockedBrand } from '../lib/blockedBrands.ts'
 
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
@@ -28,10 +27,12 @@ export function AddByNameScreen() {
     setBusy(true)
     setError(null)
     try {
-      const found = await searchTextRestaurants(q, MAPS_KEY, d.coords)
-      // Never surface a blocked chain — you already said you'll never want it
-      // recommended, so don't offer it to favorite either (PRD §11.2 Q11).
-      setResults(found.filter((p) => !isBlockedBrand(p.name, d.blockedBrands)))
+      // Show every match, including blocked chains — this is the one way to
+      // reach a specific place's detail page by name (mirrors per-place no-go,
+      // which was never filtered here either). Without this, blocking a chain
+      // made every location under it permanently unreachable (owner-reported
+      // "black hole": no way back to unblock or even look at one).
+      setResults(await searchTextRestaurants(q, MAPS_KEY, d.coords))
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {

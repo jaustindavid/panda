@@ -37,11 +37,14 @@ export async function loadBlockedBrands(): Promise<BlockedBrand[]> {
 /**
  * Block a chain by name (PRD §11.2 Q11 follow-on — owner FR: "never
  * recommend Walmart/Starbucks"). Matched as a case-insensitive substring
- * against place names everywhere (discovery, roulette, add-by-name) — no
- * chain/brand ID exists in the Places API, and this also catches Google's own
- * sub-places (e.g. a literal "Walmart Bakery" Place) that a category filter
- * can't. Atomically clears any existing favorite whose name matches, in the
- * same write.
+ * against place names in discovery + roulette (never add-by-name search
+ * results — those stay unfiltered so a specific blocked-chain place is always
+ * reachable by name to look at or unblock; filtering them out there once made
+ * every location under a blocked chain a dead end, "unrecoverable"). No
+ * chain/brand ID exists in the Places API, and substring matching also
+ * catches Google's own sub-places (e.g. a literal "Walmart Bakery" Place)
+ * that a category filter can't. Atomically clears any existing favorite whose
+ * name matches, in the same write.
  */
 export async function addBlockedBrand(name: string): Promise<void> {
   const user = auth.currentUser
@@ -70,9 +73,19 @@ export async function removeBlockedBrand(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTION, id))
 }
 
-/** Does this place name match any blocked chain? Case-insensitive substring —
- *  pure, so it also runs client-side over add-by-name results. */
-export function isBlockedBrand(placeName: string, blocked: BlockedBrand[]): boolean {
+/** The blocked-chain entries whose name is a case-insensitive substring of
+ *  this place name (usually 0 or 1; a place could in theory match more than
+ *  one blocked fragment). Pure — lets the detail screen show + undo exactly
+ *  what's blocking a place. */
+export function matchingBlockedBrands(
+  placeName: string,
+  blocked: BlockedBrand[],
+): BlockedBrand[] {
   const name = placeName.toLowerCase()
-  return blocked.some((b) => name.includes(b.name.toLowerCase()))
+  return blocked.filter((b) => name.includes(b.name.toLowerCase()))
+}
+
+/** Does this place name match any blocked chain? Case-insensitive substring. */
+export function isBlockedBrand(placeName: string, blocked: BlockedBrand[]): boolean {
+  return matchingBlockedBrands(placeName, blocked).length > 0
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isBlockedBrand } from './blockedBrands.ts'
+import { isBlockedBrand, matchingBlockedBrands } from './blockedBrands.ts'
 
 describe('isBlockedBrand', () => {
   const blocked = [
@@ -26,5 +26,32 @@ describe('isBlockedBrand', () => {
 
   it('returns false when nothing is blocked', () => {
     expect(isBlockedBrand('Walmart Supercenter', [])).toBe(false)
+  })
+})
+
+describe('matchingBlockedBrands', () => {
+  const blocked = [
+    { id: 'walmart', name: 'Walmart' },
+    { id: 'starbucks', name: 'Starbucks' },
+  ]
+
+  it('returns the one matching entry', () => {
+    expect(matchingBlockedBrands('Walmart Supercenter', blocked)).toEqual([
+      { id: 'walmart', name: 'Walmart' },
+    ])
+  })
+
+  it('returns an empty array for an unrelated name', () => {
+    expect(matchingBlockedBrands('Baroni’s', blocked)).toEqual([])
+  })
+
+  it('returns every entry that matches', () => {
+    const overlapping = [
+      { id: 'wal', name: 'Wal' },
+      { id: 'walmart', name: 'Walmart' },
+    ]
+    expect(matchingBlockedBrands('Walmart Supercenter', overlapping)).toEqual(
+      overlapping,
+    )
   })
 })

@@ -308,11 +308,19 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   repeatedly no-go'ing individual Walmarts). Verified live: the Places API has
   **no chain/brand ID or filter** anywhere (Nearby, Text Search, Place
   resource) — so `blockedBrands` is a circle-shared list of name fragments,
-  matched as a **case-insensitive substring** against every place name
-  everywhere (discovery, roulette, add-by-name). This also catches Google's
-  own chain sub-places a category filter couldn't — e.g. a literal **"Walmart
-  Bakery"** Place, `primaryType: bakery`, that Google itself created for the
-  in-store counter. Blocking a chain atomically clears any matching favorite.
+  matched as a **case-insensitive substring** against every place name in
+  **discovery + roulette**. This also catches Google's own chain sub-places a
+  category filter couldn't — e.g. a literal **"Walmart Bakery"** Place,
+  `primaryType: bakery`, that Google itself created for the in-store counter.
+  Blocking a chain atomically clears any matching favorite. **Add-by-name
+  search is deliberately NOT filtered** — a same-day owner report ("it's a
+  black hole… once I block a chain it seems unrecoverable") caught that an
+  earlier version filtered it too, making every location under a blocked
+  chain permanently unreachable by name (no way back to look at it or
+  unblock). Fixed same day: search-by-name stays the universal way to reach
+  any place's detail page regardless of block state (mirrors how per-place
+  no-go was never filtered here either); the detail screen shows which
+  blocked-chain entry (or entries) match and lets you undo them right there.
   _Ships post-core (§1.3)._
 - **F8 — Add by name (later chamber; owner FR 2026-06-28).** Goal: keep a
   "not close" favorite in the rotation. Steps: search a restaurant **by

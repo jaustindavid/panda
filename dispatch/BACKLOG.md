@@ -150,8 +150,8 @@ fire.
   the owner already knows by eye. Built **name-based blocking** instead: a new
   `blockedBrands` collection (circle-shared; doc id = normalized name, so
   re-blocking overwrites, not dupes), matched as a **case-insensitive
-  substring** against place names, applied everywhere — discovery ranking,
-  roulette (inherits from ranking), and add-by-name results. Diagnosed live:
+  substring** against place names in discovery ranking (roulette inherits
+  from ranking). Diagnosed live:
   Walmart Supercenter is `primaryType: department_store` but its `types[]`
   includes `bakery` (an accurate in-store counter) — explains why the eatery-
   type broadening (§11.2 Q11) let it surface. A **category/primaryType**
@@ -163,10 +163,18 @@ fire.
   trimmed brand), plus a small "🚫 Chains" management screen
   (`BlockedBrandsScreen`, list + add/remove) linked from the discovery utility
   row. **Blocking atomically clears any matching favorite** (owner: yes — same
-  mutual-exclusion instinct as favorite/no-go). `src/lib/blockedBrands.ts` +
-  5 unit tests (83 total); rules: any member read/create/delete (collective,
-  like no-go) + 4 emulator tests (37 total). Gates green; boots clean (no
-  regression) — the UI itself is behind sign-in, owner-verified on-device.
+  mutual-exclusion instinct as favorite/no-go). `src/lib/blockedBrands.ts`;
+  rules: any member read/create/delete (collective, like no-go), 4 emulator
+  tests (37 total). **Bug, fixed same day:** the first version also filtered
+  blocked chains out of **add-by-name search results** — owner report: "it's
+  a black hole… once I block a chain it seems unrecoverable." That closed the
+  only path to a chain-blocked place's detail page (no-go was never filtered
+  there). Fix: add-by-name search shows everything regardless of block state;
+  `PlaceActions` now lists which blocked-chain entry (or entries) match a
+  place and lets you undo them right there (new `matchingBlockedBrands`
+  helper). 8 unit
+  tests (86 total). Gates green; boots clean (no regression) — the UI itself
+  is behind sign-in, owner-verified on-device.
   _PRD §7 F7 (was §1.3 speculative "brand/category-level blocking" — brand
   half now shipped; category-level blocking remains genuinely hard/parked)._
 - `[x]` **"Meal at <time>" — absolute target arrival** [M] — 2026-06-30 (owner

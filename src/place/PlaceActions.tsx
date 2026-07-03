@@ -3,14 +3,21 @@ import { useDiscoveryData } from '../discovery/discovery-context.ts'
 import type { Place } from '../lib/places.ts'
 import { addFavorite, removeFavorite } from '../lib/favorites.ts'
 import { addNoGo, removeNoGo } from '../lib/nogo.ts'
-import { addBlockedBrand, isBlockedBrand } from '../lib/blockedBrands.ts'
+import {
+  addBlockedBrand,
+  matchingBlockedBrands,
+  removeBlockedBrand,
+} from '../lib/blockedBrands.ts'
 
 /** Save-as-favorite (★, PRD §7 F8) + never-show/no-go (🚫, F7) toggles, plus a
  *  "block this chain" quick action (🚫 by name, PRD §11.2 Q11 follow-on) for
- *  places you'll never want recommended anywhere (Walmart, Starbucks, …).
- *  Favorite/no-go are circle-shared and **mutually exclusive** — saving clears
- *  a block and vice versa (enforced atomically in the lib; the post-action
- *  reloadCircleData refreshes all three). */
+ *  places you'll never want recommended anywhere (Walmart, Starbucks, …). If a
+ *  chain block already covers this place, show which + let it be undone right
+ *  here — reachable via add-by-name search, which never filters blocks (the
+ *  fix for the "black hole": a chain-blocked place must stay findable by name
+ *  to look at or unblock). Favorite/no-go are circle-shared and **mutually
+ *  exclusive** — saving clears a block and vice versa (enforced atomically in
+ *  the lib; the post-action reloadCircleData refreshes all three). */
 export function PlaceActions({
   place,
   onChanged,
@@ -26,7 +33,7 @@ export function PlaceActions({
 
   const isFav = d.favoriteIds.has(place.id)
   const isBlocked = d.nogoIds.has(place.id)
-  const chainBlocked = isBlockedBrand(place.name, d.blockedBrands)
+  const chainMatches = matchingBlockedBrands(place.name, d.blockedBrands)
 
   async function run(fn: () => Promise<void>) {
     setBusy(true)
@@ -84,8 +91,22 @@ export function PlaceActions({
         </button>
       </div>
 
-      {chainBlocked ? (
-        <p className="text-xs text-slate-500">🚫 Part of a blocked chain</p>
+      {chainMatches.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          {chainMatches.map((b) => (
+            <div key={b.id} className="flex items-center justify-between gap-2">
+              <p className="text-xs text-slate-500">🚫 Blocked chain: {b.name}</p>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void run(() => removeBlockedBrand(b.id))}
+                className="shrink-0 text-xs text-slate-400 disabled:opacity-50"
+              >
+                Unblock
+              </button>
+            </div>
+          ))}
+        </div>
       ) : blockingChain ? (
         <div className="flex gap-2">
           <input
