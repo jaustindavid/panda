@@ -151,4 +151,24 @@ describe('rankDiscovery travel time (Q9)', () => {
     expect(r[0].status).toBe('green')
     expect(r[0].travelSeconds).toBe(5400)
   })
+
+  it('arrivalMs is now + chip + drive in chip mode ("arrive by" display)', () => {
+    // chip 15 + 20-min drive → arrival 17:35.
+    const r = rankDiscovery({
+      ...base,
+      arrivalOffsetMin: 15,
+      travelSecondsById: { p: 20 * 60 },
+    })
+    expect(r[0].arrivalMs).toBe(now + 35 * 60_000)
+  })
+
+  it('arrivalMs ignores drive in target mode — equals the target instant', () => {
+    const r = rankDiscovery({
+      ...base,
+      arrivalOffsetMin: 45, // minutesUntilTarget's result, in the caller
+      travelSecondsById: { p: 20 * 60 },
+      includeDriveInArrival: false,
+    })
+    expect(r[0].arrivalMs).toBe(now + 45 * 60_000)
+  })
 })

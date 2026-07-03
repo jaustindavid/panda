@@ -277,7 +277,13 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   fetched result set — no new billed Maps call per tap (see §8).**
 - **F2 — Roulette.** Goal: pick for me. Steps: from filtered set → spin →
   one result → accept or respin. AC: pick is always within the current
-  go-able + filtered set.
+  go-able + filtered set. The result shows **distance · drive time · "Arrive
+  by 7:45"** (owner FR 2026-07-03) — **zero new Maps calls**: the pick is
+  drawn from the same already-ranked `shown` list, and drive time is already
+  fetched for every discovery candidate by the existing Route Matrix batch
+  (§11.2 Q9); `arrivalMs` is stamped by `rankDiscovery` as the exact instant
+  used for the go-able band, so the displayed ETA can never drift from why the
+  pick is 🟢/🟡.
 - **F3 — Here now.** Goal: log a pop-in. Steps: on a place → tap "here now"
   → Visit recorded, visible to circle. AC: one tap; appears in recent
   visits immediately.

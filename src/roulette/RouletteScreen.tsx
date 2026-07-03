@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDiscoveryData } from '../discovery/discovery-context.ts'
 import type { DiscoveryPlace } from '../lib/discovery.ts'
 import { formatDistance } from '../lib/distance.ts'
+import { formatClock, formatDriveTime } from '../lib/time.ts'
 
 /** Roulette (PRD §7 F2): a plain uniform-random pick over the current go-able
  *  + genre-filtered set (no weighting, §11.2 Q5), with a light spin. Accept →
@@ -86,7 +87,11 @@ export function RouletteScreen() {
               <p className="mt-1 text-3xl font-bold">{pick.place.name}</p>
               <p className="mt-1 text-slate-400">
                 {pick.genre} · {formatDistance(pick.distanceMeters)}
+                {pick.travelSeconds != null && ` · ${formatDriveTime(pick.travelSeconds)}`}
                 {pick.status === 'yellow' && ' · cutting it close'}
+              </p>
+              <p className="text-sm text-slate-500">
+                Arrive by {formatClock(pick.arrivalMs)}
               </p>
             </div>
             <div className="flex gap-3">

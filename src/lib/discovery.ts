@@ -19,6 +19,10 @@ export interface DiscoveryPlace {
   distanceMeters: number
   /** Drive time from the user, seconds (Routes matrix). Absent ⇒ unknown. */
   travelSeconds?: number
+  /** The estimated arrival instant actually used for the go-able band (epoch
+   *  ms) — chip + drive, or the "meal at" target clock. For display ("arrive
+   *  by 7:45"); always consistent with `status` since it's the same value. */
+  arrivalMs: number
   genre: string
   /** Plain-English "why" for the band (detail explainer, owner #5). */
   why?: string
@@ -63,13 +67,14 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
     const driveSec = opts.travelSecondsById?.[place.id]
     const addDrive = opts.includeDriveInArrival !== false
     const travelMin = addDrive && driveSec != null ? Math.round(driveSec / 60) : 0
+    const effectiveOffsetMin = arrivalOffsetMin + travelMin
     const result = evaluateGoable({
       periods: place.periods,
       kitchenPeriods: place.kitchenPeriods,
       closeBufferMin: opts.overrides?.[place.id],
       utcOffsetMinutes: place.utcOffsetMinutes,
       nowMs,
-      arrivalOffsetMin: arrivalOffsetMin + travelMin,
+      arrivalOffsetMin: effectiveOffsetMin,
     })
     if (result.status === 'red') continue
     out.push({
@@ -77,6 +82,7 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
       status: result.status,
       distanceMeters,
       travelSeconds: driveSec ?? undefined,
+      arrivalMs: nowMs + effectiveOffsetMin * 60_000,
       genre: genreLabel(place),
       why: result.why,
     })

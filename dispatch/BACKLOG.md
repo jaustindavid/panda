@@ -141,6 +141,19 @@ fire.
 
 ## Done
 
+- `[x]` **Roulette: show distance/drive-time/ETA on the pick** [XS] —
+  2026-07-03 (owner FR: "1.6km + '20 minutes'... or the ETA ('arrive by
+  8:25')"). **Zero new Maps calls** — the roulette pick is drawn from the
+  already-ranked `d.shown` list, and drive time is already fetched for every
+  discovery candidate by the existing Route Matrix batch (§11.2 Q9); this was
+  a display-only gap (`PlaceCard` already showed distance+drive on the main
+  list, roulette just didn't render its copy of the same data). Added
+  `arrivalMs` to `DiscoveryPlace` — stamped by `rankDiscovery` as the exact
+  instant used for the go-able band (chip+drive, or the "meal at" target) —
+  so "Arrive by 7:45" can never drift from why a pick is 🟢/🟡. Result card now
+  reads "{genre} · {distance} · ~{drive} min" + "Arrive by {time}". 2 unit
+  tests (88 total). Gates green; boots clean (UI behind sign-in, owner-
+  verified on-device). _PRD §7 F2._
 - `[x]` **Block a whole chain by name** [M] — 2026-07-02 (owner FR, filed via
   in-app feedback: "We need the blacklist. Walmart, for instance" — surfaced
   by repeatedly no-go'ing individual Walmarts). **Fact-checked live:** the
