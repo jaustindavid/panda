@@ -20,6 +20,23 @@ const ENDPOINT = 'https://places.googleapis.com/v1/places:searchNearby'
 // on the three broad types.
 const EATERY_TYPES = ['restaurant', 'cafe', 'bakery', 'donut_shop']
 
+// The café-hunt set (PRD §7 F9): matched on **primaryType** via Nearby's
+// `includedPrimaryTypes`, per the owner ("a specific type of place… there are
+// probably a few primary we'd want to filter"). Primary-type matching is what
+// keeps the junk out — with plain `includedTypes`, grocery/convenience stores
+// leak in via `bakery`/`cafe` in their types[] (Whole Foods, Safeway, ampm —
+// verified live in Sedona 2026-07-11) and eat scarce nearest-20 slots. Living
+// set — extend on a missed should-be-hit.
+export const CAFE_PRIMARY_TYPES = [
+  'cafe',
+  'coffee_shop',
+  'coffee_roastery',
+  'bakery',
+  'donut_shop',
+  'bagel_shop',
+  'tea_house',
+]
+
 // Field mask kept to the Enterprise (opening-hours) SKU. Deliberately NO
 // rating / priceLevel — those bump the call to the pricier Enterprise+
 // Atmosphere SKU (PRD §8). `current*OpeningHours` (holiday-aware, ~7-day
@@ -93,6 +110,9 @@ export interface SearchNearbyOptions {
   center: LatLng
   radiusMeters?: number
   maxResultCount?: number
+  /** When set, match on **primaryType** (`includedPrimaryTypes`) instead of
+   *  the default EATERY_TYPES types-array match — the café hunt (F9). */
+  includedPrimaryTypes?: string[]
 }
 
 /**
@@ -104,6 +124,9 @@ export async function searchNearbyRestaurants(
   opts: SearchNearbyOptions,
 ): Promise<Place[]> {
   const { apiKey, center, radiusMeters = 5000, maxResultCount = 20 } = opts
+  const typeFilter = opts.includedPrimaryTypes
+    ? { includedPrimaryTypes: opts.includedPrimaryTypes }
+    : { includedTypes: EATERY_TYPES }
   const res = await fetch(ENDPOINT, {
     method: 'POST',
     headers: {
@@ -112,7 +135,7 @@ export async function searchNearbyRestaurants(
       'X-Goog-FieldMask': FIELD_MASK,
     },
     body: JSON.stringify({
-      includedTypes: EATERY_TYPES,
+      ...typeFilter,
       maxResultCount,
       rankPreference: 'DISTANCE',
       locationRestriction: { circle: { center, radius: radiusMeters } },

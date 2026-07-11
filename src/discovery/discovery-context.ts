@@ -49,6 +49,12 @@ export interface DiscoveryData {
   /** Restrict the list (and roulette) to saved favorites. */
   favoritesOnly: boolean
   setFavoritesOnly: (on: boolean) => void
+  /** Café hunt (PRD §7 F9): a primary-type-scoped, time-agnostic browse —
+   *  "what's out there," nothing hidden for being closed. While on, `ranked`
+   *  / `shown` / `genres` / loading / fetchError all reflect the café set;
+   *  toggling clears the genre filter (disjoint vocabularies). */
+  cafeMode: boolean
+  setCafeMode: (on: boolean) => void
   nowMs: number
 
   /** Center the current results are around (user GPS, or a "search this

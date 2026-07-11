@@ -346,8 +346,26 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   (subject to the go-able test on their own hours AND the 100 km distance
   cap); any member can add or remove; stores only the Place ID, name/hours
   re-hydrated on display. _Ships post-core (§1.3)._
-
-Google Maps Platform is the only metered dependency, and **opening-hours
+- **F9 — Café hunt (owner FR 2026-07-11, SHIPPED same day).** Goal: "I'm
+  headed to coffee soon" / "headed out tomorrow morning" — a hunt for a
+  **specific type of place**, time-agnostic: not "where can we go right now"
+  but "what's out there." A **☕ Cafés** toggle on the home screen flips
+  discovery into a browse: a separate Nearby Search scoped by
+  **`includedPrimaryTypes`** (`CAFE_PRIMARY_TYPES` — cafe, coffee_shop,
+  coffee_roastery, bakery, donut_shop, bagel_shop, tea_house; a living set
+  like Q11's). **Primary-type matching is load-bearing**, per the owner
+  ("there are probably a few primary we'd want to filter") and verified live
+  in Sedona: plain `includedTypes` lets grocery/convenience stores leak in
+  via `bakery`/`cafe` in their `types[]` (Whole Foods, Safeway, ampm) and eat
+  scarce nearest-20 slots — with primary-type scoping, Sedonuts ranked #13 of
+  20 with junk gone. AC: results sort **purely nearest-first**; 🔴 red is
+  **kept** (nothing hidden for being closed — the go-able badge is hidden on
+  cards since the question isn't asked); no-go + blocked chains still apply;
+  genre chips work within the café set (Bakery / Coffee Shop / …); when-chips
+  are hidden; "Search wider" works (genre re-search is dinner-only). Cost:
+  one Enterprise Nearby call per (center, radius) while the mode is on —
+  user-triggered (§8), cached so toggling never re-bills. _Range tends wider;
+  a café-specific default radius is a possible follow-on._
 fields force the Enterprise SKU** — so the constrained resource is the
 **1,000 free Enterprise calls/month** (per billing account).
 

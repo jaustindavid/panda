@@ -141,6 +141,29 @@ fire.
 
 ## Done
 
+- `[x]` **Café hunt — ☕ browse mode (F9)** [M] — 2026-07-11 (owner FR:
+  "I'm headed to coffee soon" / "headed out tomorrow morning" — a search for
+  a specific type of place, time-agnostic, "what's out there"). A **☕ Cafés**
+  toggle flips discovery into a browse: separate Nearby fetch scoped by
+  **`includedPrimaryTypes`** (`CAFE_PRIMARY_TYPES`: cafe, coffee_shop,
+  coffee_roastery, bakery, donut_shop, bagel_shop, tea_house — living set),
+  results **purely nearest-first with 🔴 red kept** (`browse: true` in
+  `rankDiscovery`; badges hidden on cards — the go-now question isn't asked).
+  **Primary-type matching is the load-bearing choice, verified live from the
+  owner's Sedona coordinates** (tooling restored this session): with plain
+  `includedTypes`, grocery/convenience junk (Whole Foods, Safeway, ampm)
+  leaks in via `bakery`/`cafe` in `types[]` and eats nearest-20 slots —
+  Sedonuts missed the cut; with `includedPrimaryTypes`, junk gone and
+  **Sedonuts ranked #13 of 20**. This also resolves the crowding root-cause
+  behind the 2026-07-11 `donut_shop` report (the type fix was correct but
+  insufficient — the flat 20-cap in dense areas was the real ceiling; a
+  type-scoped fetch gives cafés their own 20). One Enterprise Nearby call
+  per (center, radius) while on, cached across toggles (§8); no-go + blocked
+  chains apply; genre chips work within the set; when-chips hidden; "Search
+  wider" works; genre re-search stays dinner-only; roulette spins the café
+  set. `findRanked` searches both sets (no spurious cold Details fetch);
+  café places join the travel batch + "I'm here" candidates. 3 unit tests
+  (96 total). _PRD §7 F9._
 - `[x]` **Eatery types — `donut_shop` (Nearby-vs-Text-Search gap)** [XS] —
   2026-07-11 (owner, Sedona: "Sedonuts & Coffee" had correct hours 0600–1200,
   correct 850 m distance, and was findable via add-by-name, yet never showed

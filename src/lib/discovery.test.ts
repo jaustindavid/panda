@@ -173,6 +173,34 @@ describe('rankDiscovery travel time (Q9)', () => {
   })
 })
 
+describe('rankDiscovery browse mode (the café hunt, F9)', () => {
+  // "now" Wed 18:00: open11to22 → green; `closed` (06:00–09:00) → red.
+  const nearClosed = place('near-closed', 0.001, 'donut_shop', closed)
+  const farOpen = place('far-open', 0.05, 'cafe', open11to22)
+  const base = {
+    places: [farOpen, nearClosed],
+    origin: { latitude: 0, longitude: 0 },
+    nowMs,
+    arrivalOffsetMin: 15,
+  }
+
+  it('keeps red places (time-agnostic: closed-now is still "out there")', () => {
+    const r = rankDiscovery({ ...base, browse: true })
+    expect(r.map((d) => d.place.id)).toContain('near-closed')
+    expect(r.find((d) => d.place.id === 'near-closed')?.status).toBe('red')
+  })
+
+  it('sorts purely nearest-first — a closed near place outranks an open far one', () => {
+    const r = rankDiscovery({ ...base, browse: true })
+    expect(r.map((d) => d.place.id)).toEqual(['near-closed', 'far-open'])
+  })
+
+  it('without browse, the same input drops red and leads with the open place', () => {
+    const r = rankDiscovery(base)
+    expect(r.map((d) => d.place.id)).toEqual(['far-open'])
+  })
+})
+
 describe('findHereNowSuggestion (the "I\'m here" shortcut)', () => {
   const origin = { latitude: 0, longitude: 0 }
   const near = place('near', 0.0005, 'restaurant', open11to22) // ~56 m

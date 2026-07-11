@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useGeolocation } from '../hooks/useGeolocation.ts'
-import { searchNearbyRestaurants, searchTextRestaurants } from '../lib/places.ts'
+import {
+  CAFE_PRIMARY_TYPES,
+  searchNearbyRestaurants,
+  searchTextRestaurants,
+} from '../lib/places.ts'
 import type { Place } from '../lib/places.ts'
 import { computeDriveSeconds } from '../lib/travel.ts'
 import { haversineMeters } from '../lib/distance.ts'
@@ -79,6 +83,14 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   // routed, no path; absent = not yet routed. Best-effort: stays empty (filter
   // falls back to chip-only) until the Routes API is enabled.
   const [driveSecondsById, setDriveSecondsById] = useState<Record<string, number | null>>({})
+  // Café hunt (PRD §7 F9): a separate, primary-type-scoped Nearby fetch,
+  // browsed time-agnostically. Fetched lazily on first toggle-on, then cached
+  // per (center, radius) — `cafeFetchedFor` keys the last fetch so flipping
+  // the mode off/on doesn't re-bill.
+  const [cafeMode, setCafeMode] = useState(false)
+  const [cafePlaces, setCafePlaces] = useState<Place[] | null>(null)
+  const [cafeFetchedFor, setCafeFetchedFor] = useState<string | null>(null)
+  const [cafeError, setCafeError] = useState<string | null>(null)
 
   // One Nearby Search per (search center, radius) — a new billed call per
   // explicit recenter / widen (PRD §8 / §11.2 Q10).
@@ -99,6 +111,35 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       cancelled = true
     }
   }, [geo.status, searchCenter, searchRadius])
+
+  // Café-hunt fetch: one primary-type-scoped Nearby Search per (center,
+  // radius), fired only while the mode is on (user-triggered, §8) and cached
+  // via cafeFetchedFor so toggling back and forth never re-bills.
+  useEffect(() => {
+    if (!cafeMode || geo.status !== 'granted' || !searchCenter) return
+    const center = searchCenter
+    const key = `${center.latitude},${center.longitude},${searchRadius}`
+    if (key === cafeFetchedFor) return
+    let cancelled = false
+    searchNearbyRestaurants({
+      apiKey: MAPS_KEY,
+      center,
+      radiusMeters: searchRadius,
+      includedPrimaryTypes: CAFE_PRIMARY_TYPES,
+    })
+      .then((res) => {
+        if (cancelled) return
+        setCafePlaces(res)
+        setCafeFetchedFor(key)
+        setCafeError(null)
+      })
+      .catch(
+        (e) => !cancelled && setCafeError(e instanceof Error ? e.message : String(e)),
+      )
+    return () => {
+      cancelled = true
+    }
+  }, [cafeMode, geo.status, searchCenter, searchRadius, cafeFetchedFor])
 
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 60_000)
@@ -140,7 +181,12 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     if (!origin) return
     const seen = new Set<string>()
     const missing: { id: string; location: LatLng }[] = []
-    for (const p of [...favoritePlaces, ...extraPlaces, ...(places ?? [])]) {
+    for (const p of [
+      ...favoritePlaces,
+      ...extraPlaces,
+      ...(places ?? []),
+      ...(cafePlaces ?? []),
+    ]) {
       if (driveSecondsById[p.id] !== undefined || seen.has(p.id)) continue
       // Skip places past the distance cap — they're dropped from ranked
       // anyway, so don't spend a Route Matrix element on them.
@@ -164,7 +210,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [places, favoritePlaces, extraPlaces, geo.coords, driveSecondsById])
+  }, [places, favoritePlaces, extraPlaces, cafePlaces, geo.coords, driveSecondsById])
 
   const ranked = useMemo(() => {
     if (!geo.coords) return []
@@ -204,6 +250,37 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     driveSecondsById,
   ])
 
+  // Café hunt (F9): time-agnostic browse over the café-scoped fetch alone —
+  // nearest-first, red kept (status still computed for the detail screen).
+  // No favorites/extras merge (they're the dinner candidate set); no-go and
+  // blocked chains still apply everywhere.
+  const cafeRanked = useMemo(() => {
+    if (!geo.coords || !cafePlaces) return []
+    const r = rankDiscovery({
+      places: cafePlaces,
+      origin: geo.coords,
+      nowMs,
+      arrivalOffsetMin: offset,
+      overrides,
+      travelSecondsById: driveSecondsById,
+      browse: true,
+    })
+    return r.filter(
+      (d) => !nogoIds.has(d.place.id) && !isBlockedBrand(d.place.name, blockedBrands),
+    )
+  }, [
+    cafePlaces,
+    nogoIds,
+    blockedBrands,
+    geo.coords,
+    nowMs,
+    offset,
+    overrides,
+    driveSecondsById,
+  ])
+
+  const activeRanked = cafeMode ? cafeRanked : ranked
+
   // "I'm here" shortcut (owner FR 2026-07-10): nearest already-fetched place
   // to current GPS, ignoring go-able status entirely — you're physically
   // there regardless of what Maps hours say. No new Maps call: same merged
@@ -213,22 +290,23 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     const byId = new Map<string, Place>()
     for (const fp of favoritePlaces) byId.set(fp.id, fp)
     for (const ep of extraPlaces) byId.set(ep.id, ep)
+    for (const cp of cafePlaces ?? []) byId.set(cp.id, cp)
     for (const p of places ?? []) byId.set(p.id, p)
     return findHereNowSuggestion([...byId.values()], geo.coords, dismissedHereNowIds)
-  }, [places, favoritePlaces, extraPlaces, geo.coords, dismissedHereNowIds])
+  }, [places, favoritePlaces, extraPlaces, cafePlaces, geo.coords, dismissedHereNowIds])
 
   const favoriteIds = useMemo(
     () => new Set(favoritePlaces.map((p) => p.id)),
     [favoritePlaces],
   )
 
-  const genres = useMemo(() => availableGenres(ranked), [ranked])
+  const genres = useMemo(() => availableGenres(activeRanked), [activeRanked])
   const shown = useMemo(() => {
-    let list = ranked
+    let list = activeRanked
     if (favoritesOnly) list = list.filter((r) => favoriteIds.has(r.place.id))
     if (genre) list = list.filter((r) => r.genre === genre)
     return list
-  }, [ranked, genre, favoritesOnly, favoriteIds])
+  }, [activeRanked, genre, favoritesOnly, favoriteIds])
 
   const canWiden = searchRadius < RADIUS_TIERS[RADIUS_TIERS.length - 1]
   // Widen the Nearby Search to the next radius tier; the effect re-fetches.
@@ -265,14 +343,26 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const dismissHereNow = (placeId: string) =>
     setDismissedHereNowIds((prev) => new Set(prev).add(placeId))
 
+  // Entering/leaving the café hunt clears the genre filter — the two modes
+  // have disjoint genre vocabularies (a held "Mexican" would blank the café
+  // list, and a held "Coffee Shop" would blank dinner).
+  const toggleCafeMode = (on: boolean) => {
+    setCafeMode(on)
+    setGenre(null)
+  }
+
   const value: DiscoveryData = {
     geoStatus: geo.status,
     geoMessage: geo.message,
     coords: geo.coords,
     retryGeo: geo.request,
-    loading: geo.status === 'granted' && places === null && fetchError === null,
-    fetchError,
-    ranked,
+    loading:
+      geo.status === 'granted' &&
+      (cafeMode
+        ? cafePlaces === null && cafeError === null
+        : places === null && fetchError === null),
+    fetchError: cafeMode ? cafeError : fetchError,
+    ranked: activeRanked,
     shown,
     genres,
     annotations,
@@ -299,7 +389,13 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     findMoreInGenre,
     expanding,
     expandError,
-    findRanked: (placeId) => ranked.find((d) => d.place.id === placeId),
+    cafeMode,
+    setCafeMode: toggleCafeMode,
+    // Search the active list first, then the other — a detail opened from
+    // Visits (dinner set) while browsing cafés shouldn't cold-fetch.
+    findRanked: (placeId) =>
+      activeRanked.find((d) => d.place.id === placeId) ??
+      (cafeMode ? ranked : cafeRanked).find((d) => d.place.id === placeId),
     reloadCircleData: () => setCircleRefresh((r) => r + 1),
   }
 

@@ -24,7 +24,9 @@ function Centered({ children }: { children: ReactNode }) {
 function ExpandControls() {
   const d = useDiscoveryData()
   if (d.favoritesOnly) return null
-  const showGenreMore = d.genre != null
+  // Genre re-search is a dinner-set tool (its results merge into the dinner
+  // candidate set, not the café one) — café mode keeps only "Search wider".
+  const showGenreMore = d.genre != null && !d.cafeMode
   if (!d.canWiden && !showGenreMore) return null
 
   return (
@@ -97,15 +99,33 @@ export function DiscoveryScreen() {
     <div className="flex h-full flex-col gap-3">
       <h1 className="sr-only">Find a place to eat</h1>
       <HereNowBanner />
-      <WhenChips
-        value={d.offset}
-        onChange={d.setOffset}
-        targetMinOfDay={d.targetMinOfDay}
-        onSetTarget={d.setTargetArrival}
-        caption={caption}
-      />
+      {d.cafeMode ? (
+        <p className="py-1 text-center text-xs text-slate-500">
+          ☕ Browsing cafés — everything nearby, open or not
+        </p>
+      ) : (
+        <WhenChips
+          value={d.offset}
+          onChange={d.setOffset}
+          targetMinOfDay={d.targetMinOfDay}
+          onSetTarget={d.setTargetArrival}
+          caption={caption}
+        />
+      )}
       <GenreFilter genres={d.genres} selected={d.genre} onSelect={d.setGenre} />
       <div className="flex items-center gap-3 text-sm">
+        <button
+          type="button"
+          aria-pressed={d.cafeMode}
+          onClick={() => d.setCafeMode(!d.cafeMode)}
+          className={`rounded-full px-3 py-1 font-medium ${
+            d.cafeMode
+              ? 'bg-orange-400/20 text-orange-200'
+              : 'bg-slate-800 text-slate-300'
+          }`}
+        >
+          ☕ Cafés
+        </button>
         {d.favoriteIds.size > 0 && (
           <button
             type="button"
@@ -165,7 +185,9 @@ export function DiscoveryScreen() {
               <p>
                 {d.favoritesOnly
                   ? 'None of your favorites are go-able right now.'
-                  : 'Nothing go-able right now. Try a later arrival.'}
+                  : d.cafeMode
+                    ? 'No cafés found nearby.'
+                    : 'Nothing go-able right now. Try a later arrival.'}
               </p>
               <ExpandControls />
             </Centered>
@@ -180,6 +202,7 @@ export function DiscoveryScreen() {
                     annotation={d.annotations[item.place.id]}
                     isFavorite={d.favoriteIds.has(item.place.id)}
                     nowMs={d.nowMs}
+                    showStatus={!d.cafeMode}
                     onSelect={(i) => navigate(`/place/${i.place.id}`)}
                   />
                 ))}

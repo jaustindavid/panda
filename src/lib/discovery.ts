@@ -14,8 +14,9 @@ export const MAX_DISTANCE_M = 100_000
 
 export interface DiscoveryPlace {
   place: Place
-  /** 🟢 green / 🟡 yellow / hours-unknown — 🔴 red is excluded (PRD §7 F1). */
-  status: Exclude<GoableStatus, 'red'>
+  /** 🟢 green / 🟡 yellow / hours-unknown; 🔴 red is excluded in the default
+   *  go-now ranking (PRD §7 F1) but present in browse mode (F9). */
+  status: GoableStatus
   distanceMeters: number
   /** Drive time from the user, seconds (Routes matrix). Absent ⇒ unknown. */
   travelSeconds?: number
@@ -44,6 +45,10 @@ export interface RankOptions {
    *  "meal at <time>" absolute target — the clock time IS the arrival, drive
    *  isn't added (you'll leave in time); drive stays annotated for display. */
   includeDriveInArrival?: boolean
+  /** Browse mode — the café hunt's "what's out there" (PRD §7 F9): keep 🔴
+   *  red (time-agnostic, nothing hidden for being closed) and sort purely
+   *  nearest-first instead of band-first. Status is still computed. */
+  browse?: boolean
 }
 
 /**
@@ -76,7 +81,7 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
       nowMs,
       arrivalOffsetMin: effectiveOffsetMin,
     })
-    if (result.status === 'red') continue
+    if (result.status === 'red' && !opts.browse) continue
     out.push({
       place,
       status: result.status,
@@ -88,6 +93,11 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
     })
   }
 
+  if (opts.browse) {
+    // Time-agnostic browsing: distance is the only ordering that matters.
+    out.sort((a, b) => a.distanceMeters - b.distanceMeters)
+    return out
+  }
   const rank = (s: DiscoveryPlace['status']) =>
     s === 'green' ? 0 : s === 'yellow' ? 1 : 2
   out.sort(

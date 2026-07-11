@@ -9,6 +9,9 @@ interface PlaceCardProps {
   isFavorite?: boolean
   /** Passed from the parent (never Date.now() in render). */
   nowMs: number
+  /** False in the café hunt (F9) — browsing is time-agnostic, so a
+   *  go-able-now badge would only mislead. */
+  showStatus?: boolean
   onSelect: (item: DiscoveryPlace) => void
 }
 
@@ -19,6 +22,7 @@ export function PlaceCard({
   annotation,
   isFavorite,
   nowMs,
+  showStatus = true,
   onSelect,
 }: PlaceCardProps) {
   const badge =
@@ -26,7 +30,9 @@ export function PlaceCard({
       ? { cls: 'bg-emerald-500/15 text-emerald-300', label: 'Go-able' }
       : item.status === 'yellow'
         ? { cls: 'bg-amber-500/15 text-amber-300', label: 'Cutting it close' }
-        : { cls: 'bg-slate-600/30 text-slate-300', label: 'Hours unknown' }
+        : item.status === 'red'
+          ? { cls: 'bg-rose-500/15 text-rose-300', label: 'Not go-able now' }
+          : { cls: 'bg-slate-600/30 text-slate-300', label: 'Hours unknown' }
   const noteCount = annotation?.noteCount ?? 0
   const lastVisitAt = annotation?.lastVisitAt ?? null
 
@@ -56,11 +62,13 @@ export function PlaceCard({
             </span>
           )}
         </span>
-        <span
-          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}
-        >
-          {badge.label}
-        </span>
+        {showStatus && (
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}
+          >
+            {badge.label}
+          </span>
+        )}
       </button>
     </li>
   )
