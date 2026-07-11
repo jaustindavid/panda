@@ -100,3 +100,40 @@ export function rankDiscovery(opts: RankOptions): DiscoveryPlace[] {
 export function availableGenres(list: DiscoveryPlace[]): string[] {
   return [...new Set(list.map((d) => d.genre))].sort()
 }
+
+/** Distance threshold for the "I'm here" home-screen shortcut — inside this
+ *  radius we're confident enough to suggest a one-tap visit log without you
+ *  finding the place yourself; beyond it, a wrong GPS-to-place match is too
+ *  likely to guess. Owner FR 2026-07-10. */
+export const HERE_NOW_THRESHOLD_M = 150
+
+export interface HereNowSuggestion {
+  place: Place
+  distanceMeters: number
+}
+
+/**
+ * The nearest already-fetched place to `origin`, if within
+ * HERE_NOW_THRESHOLD_M and not in `dismissedIds` — powers the "I'm here"
+ * shortcut (PRD §7 F3 follow-on, owner FR: "I never scroll to a restaurant
+ * THEN say I'm already here"). Deliberately ignores go-able status: you're
+ * physically there regardless of what Maps hours say. Pure — `places` should
+ * already be the merged candidate set (favorites + nearby + extras), no new
+ * Maps call.
+ */
+export function findHereNowSuggestion(
+  places: Place[],
+  origin: LatLng,
+  dismissedIds: ReadonlySet<string>,
+): HereNowSuggestion | null {
+  let nearest: HereNowSuggestion | null = null
+  for (const place of places) {
+    const distanceMeters = haversineMeters(origin, place.location)
+    if (nearest == null || distanceMeters < nearest.distanceMeters) {
+      nearest = { place, distanceMeters }
+    }
+  }
+  if (nearest == null || nearest.distanceMeters > HERE_NOW_THRESHOLD_M) return null
+  if (dismissedIds.has(nearest.place.id)) return null
+  return nearest
+}

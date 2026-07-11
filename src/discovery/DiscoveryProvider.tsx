@@ -6,7 +6,12 @@ import type { Place } from '../lib/places.ts'
 import { computeDriveSeconds } from '../lib/travel.ts'
 import { haversineMeters } from '../lib/distance.ts'
 import type { LatLng } from '../lib/distance.ts'
-import { availableGenres, MAX_DISTANCE_M, rankDiscovery } from '../lib/discovery.ts'
+import {
+  availableGenres,
+  findHereNowSuggestion,
+  MAX_DISTANCE_M,
+  rankDiscovery,
+} from '../lib/discovery.ts'
 import { buildAnnotations } from '../lib/annotations.ts'
 import type { PlaceAnnotation } from '../lib/annotations.ts'
 import { loadOverrideMap } from '../lib/overrides.ts'
@@ -55,6 +60,11 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const [nogoIds, setNogoIds] = useState<Set<string>>(new Set())
   const [blockedBrands, setBlockedBrands] = useState<BlockedBrand[]>([])
   const [circleRefresh, setCircleRefresh] = useState(0)
+  // Places dismissed from the "I'm here" suggestion this session (wrong GPS
+  // match, or already logged) — suppressed, not offered as the next-nearest.
+  const [dismissedHereNowIds, setDismissedHereNowIds] = useState<Set<string>>(
+    new Set(),
+  )
   // Override search center for "search this area"; falls back to user GPS.
   const [searchOverride, setSearchOverride] = useState<LatLng | null>(null)
   const searchCenter = searchOverride ?? geo.coords
@@ -194,6 +204,19 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     driveSecondsById,
   ])
 
+  // "I'm here" shortcut (owner FR 2026-07-10): nearest already-fetched place
+  // to current GPS, ignoring go-able status entirely — you're physically
+  // there regardless of what Maps hours say. No new Maps call: same merged
+  // candidate set `ranked` uses, just without the go-able filter/ranking.
+  const hereNowSuggestion = useMemo(() => {
+    if (!geo.coords) return null
+    const byId = new Map<string, Place>()
+    for (const fp of favoritePlaces) byId.set(fp.id, fp)
+    for (const ep of extraPlaces) byId.set(ep.id, ep)
+    for (const p of places ?? []) byId.set(p.id, p)
+    return findHereNowSuggestion([...byId.values()], geo.coords, dismissedHereNowIds)
+  }, [places, favoritePlaces, extraPlaces, geo.coords, dismissedHereNowIds])
+
   const favoriteIds = useMemo(
     () => new Set(favoritePlaces.map((p) => p.id)),
     [favoritePlaces],
@@ -237,6 +260,11 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     setTargetMinOfDay(null)
   }
 
+  // Suppress the "I'm here" suggestion for a place for the rest of the
+  // session (wrong GPS match, or it was just logged).
+  const dismissHereNow = (placeId: string) =>
+    setDismissedHereNowIds((prev) => new Set(prev).add(placeId))
+
   const value: DiscoveryData = {
     geoStatus: geo.status,
     geoMessage: geo.message,
@@ -252,6 +280,8 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     favoriteIds,
     nogoIds,
     blockedBrands,
+    hereNowSuggestion,
+    dismissHereNow,
     offset,
     setOffset: chooseOffset,
     targetMinOfDay,

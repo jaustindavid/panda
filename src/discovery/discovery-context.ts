@@ -1,6 +1,6 @@
 import { createContext, use } from 'react'
 import type { LatLng } from '../lib/distance.ts'
-import type { DiscoveryPlace } from '../lib/discovery.ts'
+import type { DiscoveryPlace, HereNowSuggestion } from '../lib/discovery.ts'
 import type { PlaceAnnotation } from '../lib/annotations.ts'
 import type { GeoStatus } from '../hooks/useGeolocation.ts'
 import type { BlockedBrand } from '../lib/blockedBrands.ts'
@@ -28,6 +28,14 @@ export interface DiscoveryData {
   /** Blocked chains/brands (e.g. "Walmart"); already excluded from ranked —
    *  add-by-name filters its own results against this too. */
   blockedBrands: BlockedBrand[]
+  /** Nearest already-fetched place to current GPS, within a tight confidence
+   *  radius — the "I'm here" home-screen shortcut (owner FR 2026-07-10).
+   *  Ignores go-able status entirely; null when nothing's close enough or
+   *  it's been dismissed this session. */
+  hereNowSuggestion: HereNowSuggestion | null
+  /** Suppress the "I'm here" suggestion for a place for the rest of the
+   *  session (wrong GPS match, or it was just logged). */
+  dismissHereNow: (placeId: string) => void
 
   /** The "leave in" chip offset (minutes); setOffset also exits target mode. */
   offset: number

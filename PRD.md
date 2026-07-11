@@ -286,7 +286,17 @@ Nothing is readable by non-members. Rules mirror this table one-to-one.
   pick is 🟢/🟡.
 - **F3 — Here now.** Goal: log a pop-in. Steps: on a place → tap "here now"
   → Visit recorded, visible to circle. AC: one tap; appears in recent
-  visits immediately.
+  visits immediately. **Home-screen "I'm here" shortcut — SHIPPED
+  2026-07-10** (owner FR, filed via feedback + design discussion: "I never
+  open panda, scroll to a restaurant, THEN say oh and also I'm already
+  here"). When GPS puts us within **150 m** of an already-fetched place — no
+  new Maps call, same candidate set the list uses — a "📍 You're at X" card
+  sits at the top of the home screen; one tap logs the visit, no navigating
+  into the place first. **Deliberately ignores go-able status**: you're
+  physically there regardless of what Maps hours say a place should be doing.
+  A "Not here?" dismiss covers a wrong GPS match; nothing within 150 m falls
+  back to the original find-it-yourself flow (no auto-search — stays inside
+  the one-Nearby-Search-per-session discipline, §8).
 - **F4 — Note.** Goal: leave/read a tip. Steps: on a place → add/edit note →
   shared + attributed. AC: members see it on that place; author can
   edit/delete.

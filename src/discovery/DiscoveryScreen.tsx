@@ -7,6 +7,7 @@ import { WhenChips } from './WhenChips.tsx'
 import { GenreFilter } from './GenreFilter.tsx'
 import { PlaceCard } from './PlaceCard.tsx'
 import { DiscoveryMap } from './DiscoveryMap.tsx'
+import { HereNowBanner } from './HereNowBanner.tsx'
 
 function Centered({ children }: { children: ReactNode }) {
   return (
@@ -95,6 +96,7 @@ export function DiscoveryScreen() {
   return (
     <div className="flex h-full flex-col gap-3">
       <h1 className="sr-only">Find a place to eat</h1>
+      <HereNowBanner />
       <WhenChips
         value={d.offset}
         onChange={d.setOffset}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { availableGenres, rankDiscovery } from './discovery.ts'
+import { availableGenres, findHereNowSuggestion, rankDiscovery } from './discovery.ts'
 import type { Place } from './places.ts'
 
 const WED = 3
@@ -170,5 +170,35 @@ describe('rankDiscovery travel time (Q9)', () => {
       includeDriveInArrival: false,
     })
     expect(r[0].arrivalMs).toBe(now + 45 * 60_000)
+  })
+})
+
+describe('findHereNowSuggestion (the "I\'m here" shortcut)', () => {
+  const origin = { latitude: 0, longitude: 0 }
+  const near = place('near', 0.0005, 'restaurant', open11to22) // ~56 m
+  const far = place('far', 0.003, 'restaurant', open11to22) // ~334 m — outside threshold
+
+  it('suggests the nearest place within the threshold', () => {
+    const r = findHereNowSuggestion([near, far], origin, new Set())
+    expect(r?.place.id).toBe('near')
+  })
+
+  it('returns null when nothing is within the threshold', () => {
+    expect(findHereNowSuggestion([far], origin, new Set())).toBeNull()
+  })
+
+  it('returns null when the nearest match was dismissed (does not fall through)', () => {
+    const r = findHereNowSuggestion([near, far], origin, new Set(['near']))
+    expect(r).toBeNull()
+  })
+
+  it('ignores go-able status — an hours-unknown place still matches', () => {
+    const unknown = place('unknown', 0.0003, 'restaurant', undefined) // ~33 m
+    const r = findHereNowSuggestion([unknown], origin, new Set())
+    expect(r?.place.id).toBe('unknown')
+  })
+
+  it('returns null with no candidates', () => {
+    expect(findHereNowSuggestion([], origin, new Set())).toBeNull()
   })
 })

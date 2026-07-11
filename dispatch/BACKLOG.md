@@ -141,6 +141,32 @@ fire.
 
 ## Done
 
+- `[x]` **Smart "I'm here" — home-screen GPS shortcut** [S] — 2026-07-10
+  (owner FR, filed via feedback: went to Big Bad Breakfast, opened panda to
+  log it, had to scroll the whole ranked list to find a place they were
+  standing in — "there's very little actual value to finding a restaurant in
+  the list; I never scroll to a restaurant THEN say oh and also I'm already
+  here"). **Root cause wasn't the list sort** (band-first-then-distance is
+  correct for *planning*) — routing "I'm here" through a planning-ranked list
+  was the wrong tool for "I'm already somewhere, log it." **Zero new Maps
+  calls**: `findHereNowSuggestion` (`src/lib/discovery.ts`) picks the nearest
+  place from the SAME already-fetched candidate set the list uses
+  (favorites, nearby, genre-scope extras), within a **150 m** confidence gate
+  (`HERE_NOW_THRESHOLD_M`) — beyond that, a GPS-to-place guess is too likely
+  wrong, so it just falls back to the normal flow (no auto-search, keeps §8's
+  one-Nearby-Search-per-session discipline). **Deliberately ignores go-able
+  status** — you're physically there regardless of what Maps hours say; a
+  place currently reading closed/red still matches. UI: a "📍 You're at X"
+  card at the very top of the home screen (`HereNowBanner.tsx`) — one tap
+  logs the visit inline (no detour through the place detail screen), a "Not
+  here?" link dismisses a wrong match for the rest of the session
+  (`dismissedHereNowIds` in `DiscoveryProvider`), and a successful log
+  auto-clears the card after a beat. The existing detail-screen "I'm here"
+  button stays, for logging somewhere you're not GPS-matched to. 5 unit tests
+  (93 total) on the pure nearest-within-threshold-minus-dismissed logic.
+  Gates green (typecheck/lint/tests/build) — **could not run the live boot
+  check this time** (both browser bridges were disconnected this session);
+  GPS-dependent behavior needs an on-device check regardless. _PRD §7 F3._
 - `[x]` **Roulette: show distance/drive-time/ETA on the pick** [XS] —
   2026-07-03 (owner FR: "1.6km + '20 minutes'... or the ETA ('arrive by
   8:25')"). **Zero new Maps calls** — the roulette pick is drawn from the
