@@ -4,12 +4,21 @@ import type { OpeningPeriod } from './goable.ts'
 const ENDPOINT = 'https://places.googleapis.com/v1/places:searchNearby'
 
 // What counts as "a place to eat" (PRD §11.2 Q11). Table A searchable types,
-// so they're valid Nearby `includedTypes`; granular eateries (bagel_shop,
-// coffee_shop, …) all also carry one of these, so this set catches them.
-// Owner's guiding examples drive it — extend here when a should-be-hit is
-// missed. Used both server-side (Nearby filter) and client-side (Text Search,
-// whose `includedType` is singular and can't take the set).
-const EATERY_TYPES = ['restaurant', 'cafe', 'bakery']
+// so they're valid Nearby `includedTypes`; most granular eateries (bagel_shop,
+// coffee_shop, …) also carry one of these three in their `types[]`, so the set
+// catches them via Nearby's type-array matching. Owner's guiding examples
+// drive it — extend here when a should-be-hit is missed. Used both
+// server-side (Nearby filter) and client-side (Text Search, whose
+// `includedType` is singular and can't take the set).
+//
+// `donut_shop` is listed explicitly (not just relied on via `bakery`/`cafe`
+// in its types[]): confirmed 2026-07-11 (owner, Sedona) that Nearby Search
+// can omit a place Text Search finds fine, for the same Place ID, hours, and
+// distance — Google's type-array richness isn't consistent across search
+// methods. Matching on `primaryType` directly (via includedTypes) sidesteps
+// that inconsistency, so confirmed misses go here rather than relying solely
+// on the three broad types.
+const EATERY_TYPES = ['restaurant', 'cafe', 'bakery', 'donut_shop']
 
 // Field mask kept to the Enterprise (opening-hours) SKU. Deliberately NO
 // rating / priceLevel — those bump the call to the pricier Enterprise+

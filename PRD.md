@@ -626,6 +626,32 @@ budget** is the email alert. The split-billing trigger is in §13.3.
     Search client-side filter. Verified live: Kudu / a pâtisserie / a café
     enter the nearest-20 downtown; "Ruby's" is now addable by name (6 hits,
     was 0); a hotel query returns 0.
+    **New mechanism found + fixed 2026-07-11 (owner, Sedona):** **Sedonuts &
+    Coffee** (`donut_shop`) had correct hours (0600–1200), correct distance
+    (850 m), and was findable + correctly typed via add-by-name (Text
+    Search) — yet never appeared in the main discovery list. **Diagnostic
+    technique worth reusing** (needs no live Places API access — useful when
+    a coding agent's browser/API tooling is unavailable): favorite the
+    missing place, reload — if it now appears (favorites bypass the Nearby
+    fetch and merge in directly), the place was never in the raw fetch at
+    all, which isolates the bug to Nearby Search inclusion rather than
+    go-able logic or ranking. Owner's own A/B test (favorite it → appears
+    go-able, #5 in the list; un-favorite → disappears) proved it,
+    decisively: **Nearby Search can omit a place Text
+    Search finds fine, for the identical Place ID** — Google's `types[]`
+    richness isn't consistent across search methods, so the "does `cafe` /
+    `bakery` / `restaurant` appear anywhere in `types[]`" heuristic that
+    worked for Kudu/Ruby's doesn't reliably hold on the Nearby Search side
+    for every granular type. Fix: list confirmed granular `primaryType`s
+    **explicitly** in `includedTypes` (starting with `donut_shop`) instead of
+    depending solely on the three broad types — matching directly on
+    `primaryType` sidesteps the types-array inconsistency. **Living set,
+    now two entry points:** (a) a should-be-hit whose primaryType/types don't
+    intersect the three broad types (the original Ruby's/Kudu case) *or*
+    (b) a should-be-hit that Text Search finds but Nearby Search doesn't,
+    despite matching (this Sedonuts case) — either way, the fix is the same:
+    look up (or confirm via the favorite-toggle A/B test) its `primaryType`
+    and add it to `EATERY_TYPES`.
 
 ---
 

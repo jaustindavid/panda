@@ -141,6 +141,23 @@ fire.
 
 ## Done
 
+- `[x]` **Eatery types — `donut_shop` (Nearby-vs-Text-Search gap)** [XS] —
+  2026-07-11 (owner, Sedona: "Sedonuts & Coffee" had correct hours 0600–1200,
+  correct 850 m distance, and was findable via add-by-name, yet never showed
+  on the main list). **New mechanism, not the old "type not in the broad set"
+  case:** owner's own favorite/un-favorite A/B test proved Nearby Search can
+  omit a place Text Search finds fine for the identical Place ID — Google's
+  `types[]` richness isn't consistent across search methods, so the
+  intersects-`cafe`/`bakery`/`restaurant` heuristic doesn't reliably hold on
+  the Nearby side for every granular type. Fix: `EATERY_TYPES` now lists
+  confirmed granular `primaryType`s explicitly (`donut_shop` added) instead
+  of relying solely on the three broad types — matching directly on
+  `primaryType` sidesteps the inconsistency. No new tests needed (constant
+  isn't separately unit-tested); gates green. **Diagnostic technique now
+  documented for reuse** (needs no live Places API access): favorite the
+  missing place — if it appears after reload, it was never in the raw Nearby
+  fetch, isolating the bug to inclusion rather than go-able/ranking logic.
+  _PRD §11.2 Q11 (extended)._
 - `[x]` **Smart "I'm here" — home-screen GPS shortcut** [S] — 2026-07-10
   (owner FR, filed via feedback: went to Big Bad Breakfast, opened panda to
   log it, had to scroll the whole ranked list to find a place they were
